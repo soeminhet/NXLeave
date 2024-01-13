@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "339800589806",
+    "project_id": "nxleave2023-fdd50",
+    "storage_bucket": "nxleave2023-fdd50.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:339800589806:android:bbae60ddfcf6c930c2baff",
+        "android_client_info": {
+          "package_name": "com.smh.nxleave"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrF3O1aK6yO8y_tUHXo3CR6_Q8FtjOOjw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
