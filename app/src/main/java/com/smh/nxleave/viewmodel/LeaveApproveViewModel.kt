@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.ListenerRegistration
 import com.smh.nxleave.design.component.LeaveStatus
 import com.smh.nxleave.domain.mapper.toUiModel
+import com.smh.nxleave.domain.model.AccessLevel
 import com.smh.nxleave.domain.repository.AuthRepository
 import com.smh.nxleave.domain.repository.FireStoreRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
@@ -14,7 +15,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -33,13 +37,30 @@ class LeaveApproveViewModel @Inject constructor(
 
     private var leaveRequestListener: ListenerRegistration? = null
 
+    val accessLevel = realTimeDataRepository.currentStaff
+        .combine(realTimeDataRepository.roles) { staff, roles ->
+            roles.firstOrNull { role -> role.id == staff?.roleId }?.accessLevel ?: AccessLevel.None()
+        }
+
+
     init {
         observeRelatedStaffIds()
+    }
+
+    private fun getAdminRoleIds(): List<String> {
+        return realTimeDataRepository.roles.value.filter { role -> role.accessLevel is AccessLevel.All }.map { it.id }
     }
 
     private fun observeRelatedStaffIds() {
         viewModelScope.launch(Dispatchers.IO) {
             realTimeDataRepository.relatedStaves
+                .combine(accessLevel) { staves, access ->
+                    if (access is AccessLevel.All) staves
+                    else {
+                        val adminRoleIds = getAdminRoleIds()
+                        staves.filterNot { staff -> adminRoleIds.contains(staff.roleId) }
+                    }
+                }
                 .onEach { setLoading(true) }
                 .map { it.map { staff -> staff.id } }
                 .distinctUntilChanged()
