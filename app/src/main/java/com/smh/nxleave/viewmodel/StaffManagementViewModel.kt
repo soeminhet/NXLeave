@@ -11,6 +11,7 @@ import com.smh.nxleave.domain.repository.AuthRepository
 import com.smh.nxleave.domain.repository.FireStoreRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
 import com.smh.nxleave.screen.model.StaffProfileUiModel
+import com.smh.nxleave.utility.removeWhiteSpaces
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -71,29 +72,41 @@ class StaffManagementViewModel @Inject constructor(
 
     fun mangeAccount(model: StaffModel, password: String) {
         setLoading(true)
-        if (password.isNotBlank()) {
-            viewModelScope.launch(Dispatchers.IO) {
-                authRepository.singUp(model.email, password) {
-                    it
-                        .onSuccess { authModel ->
-                            saveStaff(model.copy(id = authModel.id))
-                        }
-                        .onFailure {
-                            setLoading(false)
-                            viewModelScope.launch {
-                                _uiEvent.emit(StaffManagementUiEvent.AccountCreateError)
-                            }
-                        }
-                }
+        viewModelScope.launch {
+            if (checkExist(model.name)) {
+                setLoading(false)
+                return@launch
             }
-        } else {
-            updateStaff(model)
+            if (password.isNotBlank()) {
+                viewModelScope.launch(Dispatchers.IO) {
+                    authRepository.singUp(model.email, password) {
+                        it
+                            .onSuccess { authModel ->
+                                saveStaff(model.copy(id = authModel.id))
+                            }
+                            .onFailure {
+                                setLoading(false)
+                                viewModelScope.launch {
+                                    _uiEvent.emit(StaffManagementUiEvent.AccountCreateError)
+                                }
+                            }
+                    }
+                }
+            } else {
+                updateStaff(model)
+            }
         }
     }
 
     fun updateStaff(model: StaffProfileUiModel) {
         setLoading(true)
-        updateStaff(model.toModel())
+        viewModelScope.launch {
+            if (checkExist(model.name)) {
+                setLoading(false)
+                return@launch
+            }
+            updateStaff(model.toModel())
+        }
     }
 
     private fun updateStaff(model: StaffModel) {
@@ -110,6 +123,15 @@ class StaffManagementViewModel @Inject constructor(
             if (!success) _uiEvent.emit(StaffManagementUiEvent.SaveStaffError)
             fetchStaves()
         }
+    }
+
+    private suspend fun checkExist(name: String): Boolean {
+        val trimmed = name.removeWhiteSpaces()
+        val exist = uiState.value.staves.any { staff ->
+            staff.name.removeWhiteSpaces().equals(trimmed, ignoreCase = true)
+        }
+        if (exist) _uiEvent.emit(StaffManagementUiEvent.AccountExist)
+        return exist
     }
 
     private fun setLoading(loading: Boolean) {
@@ -130,4 +152,5 @@ sealed interface StaffManagementUiEvent {
     data object AccountCreateError: StaffManagementUiEvent
     data object SaveStaffError: StaffManagementUiEvent
     data object UpdateStaffError: StaffManagementUiEvent
+    data object AccountExist: StaffManagementUiEvent
 }

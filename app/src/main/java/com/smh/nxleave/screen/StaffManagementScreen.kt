@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,8 +30,11 @@ import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.screen.model.StaffProfileUiModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
 import com.smh.nxleave.ui.theme.spacing
+import com.smh.nxleave.viewmodel.RoleUiEvent
+import com.smh.nxleave.viewmodel.StaffManagementUiEvent
 import com.smh.nxleave.viewmodel.StaffManagementUiState
 import com.smh.nxleave.viewmodel.StaffManagementViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun StaffManagementScreen(
@@ -40,6 +44,26 @@ fun StaffManagementScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.loading) NXLoading()
+
+    var showExistDialog by remember { mutableStateOf(false) }
+    if (showExistDialog) {
+        NXAlertDialog(
+            title = "Sorry",
+            body = "Staff name already exist.",
+            confirmButton = { showExistDialog = false }
+        )
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.uiEvent.collectLatest {
+            when(it) {
+                StaffManagementUiEvent.AccountCreateError -> {}
+                StaffManagementUiEvent.AccountExist -> showExistDialog = true
+                StaffManagementUiEvent.SaveStaffError -> {}
+                StaffManagementUiEvent.UpdateStaffError -> {}
+            }
+        }
+    }
 
     StaffManagementContent(
         uiState = uiState,
