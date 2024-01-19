@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,8 +28,10 @@ import com.smh.nxleave.design.component.NXLoading
 import com.smh.nxleave.design.sheet.ManageLeaveTypeSheet
 import com.smh.nxleave.domain.model.LeaveTypeModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
+import com.smh.nxleave.viewmodel.LeaveTypeUiEvent
 import com.smh.nxleave.viewmodel.LeaveTypesUiState
 import com.smh.nxleave.viewmodel.LeaveTypesViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LeaveTypesScreen(
@@ -38,6 +41,23 @@ fun LeaveTypesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.loading) NXLoading()
+
+    var showExistDialog by remember { mutableStateOf(false) }
+    if (showExistDialog) {
+        NXAlertDialog(
+            title = "Sorry",
+            body = "LeaveType already exist.",
+            confirmButton = { showExistDialog = false }
+        )
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.uiEvent.collectLatest {
+            when(it) {
+                LeaveTypeUiEvent.LeaveTypeExist -> showExistDialog = true
+            }
+        }
+    }
 
     LeaveTypesContent(
         uiState = uiState,
