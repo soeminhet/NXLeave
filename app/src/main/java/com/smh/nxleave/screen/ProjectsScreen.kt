@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,8 +28,11 @@ import com.smh.nxleave.design.component.ProjectItem
 import com.smh.nxleave.design.sheet.ProjectManagementSheet
 import com.smh.nxleave.domain.model.ProjectModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
+import com.smh.nxleave.viewmodel.ProjectsUiEvent
 import com.smh.nxleave.viewmodel.ProjectsUiState
 import com.smh.nxleave.viewmodel.ProjectsViewModel
+import com.smh.nxleave.viewmodel.RoleUiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun ProjectsScreen(
@@ -38,6 +42,23 @@ fun ProjectsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.loading) NXLoading()
+
+    var showExistDialog by remember { mutableStateOf(false) }
+    if (showExistDialog) {
+        NXAlertDialog(
+            title = "Sorry",
+            body = "Project name already exist.",
+            confirmButton = { showExistDialog = false }
+        )
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.uiEvent.collectLatest {
+            when(it) {
+                ProjectsUiEvent.ProjectExist -> showExistDialog = true
+            }
+        }
+    }
 
     ProjectsContent(
         uiState = uiState,
