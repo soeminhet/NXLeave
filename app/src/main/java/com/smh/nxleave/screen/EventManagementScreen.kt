@@ -9,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,8 +28,11 @@ import com.smh.nxleave.design.sheet.EventManagementSheet
 import com.smh.nxleave.domain.model.EventModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
 import com.smh.nxleave.ui.theme.spacing
+import com.smh.nxleave.viewmodel.EventManagementUiEvent
 import com.smh.nxleave.viewmodel.EventManagementUiState
 import com.smh.nxleave.viewmodel.EventManagementViewModel
+import com.smh.nxleave.viewmodel.RoleUiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun EventManagementScreen(
@@ -38,6 +42,26 @@ fun EventManagementScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.loading) NXLoading()
+
+    var showExistDialog by remember { mutableStateOf(false) }
+    if (showExistDialog) {
+        NXAlertDialog(
+            title = "Sorry",
+            body = "Event name already exist.",
+            confirmButton = { showExistDialog = false }
+        )
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.uiEvent.collectLatest {
+            when(it) {
+                EventManagementUiEvent.AddEventError -> {}
+                EventManagementUiEvent.DeleteEventError -> {}
+                EventManagementUiEvent.EventExist -> showExistDialog = true
+                EventManagementUiEvent.UpdateEventError -> {}
+            }
+        }
+    }
 
     EventManagementContent(
         uiState = uiState,

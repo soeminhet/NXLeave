@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smh.nxleave.domain.model.EventModel
 import com.smh.nxleave.domain.repository.FireStoreRepository
+import com.smh.nxleave.utility.removeWhiteSpaces
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,6 +45,10 @@ class EventManagementViewModel @Inject constructor(
     fun addEvent(model: EventModel) {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
+            if (checkExist(model.name)) {
+                setLoading(false)
+                return@launch
+            }
             val success = fireStoreRepository.addEvent(model)
             if (!success) {
                 setLoading(false)
@@ -56,6 +61,10 @@ class EventManagementViewModel @Inject constructor(
     fun updateEvent(model: EventModel) {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
+            if (checkExist(model.name)) {
+                setLoading(false)
+                return@launch
+            }
             val success = fireStoreRepository.updateEvent(model)
             if (!success) {
                 setLoading(false)
@@ -77,6 +86,15 @@ class EventManagementViewModel @Inject constructor(
         }
     }
 
+    private suspend fun checkExist(name: String): Boolean {
+        val trimmed = name.removeWhiteSpaces()
+        val exist = uiState.value.events.any { event ->
+            event.name.removeWhiteSpaces().equals(trimmed, ignoreCase = true)
+        }
+        if (exist) _uiEvent.emit(EventManagementUiEvent.EventExist)
+        return exist
+    }
+
     private fun setLoading(loading: Boolean) {
         _uiState.update {
             it.copy(
@@ -95,4 +113,5 @@ sealed interface EventManagementUiEvent {
     data object AddEventError: EventManagementUiEvent
     data object UpdateEventError: EventManagementUiEvent
     data object DeleteEventError: EventManagementUiEvent
+    data object EventExist: EventManagementUiEvent
 }
