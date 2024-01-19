@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smh.nxleave.domain.model.LeaveTypeModel
 import com.smh.nxleave.domain.repository.FireStoreRepository
+import com.smh.nxleave.utility.removeWhiteSpaces
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -46,16 +47,15 @@ class LeaveTypesViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (checkExist(name)) {
-                _uiEvent.emit(LeaveTypeUiEvent.LeaveTypeExist)
                 setLoading(false)
+                return@launch
+            }
+            val result = fireStoreRepository.addLeaveType(name, color)
+            if (result) {
+                fetchLeaveTypes()
             } else {
-                val result = fireStoreRepository.addLeaveType(name, color)
-                if (result) {
-                    fetchLeaveTypes()
-                } else {
-                    // TODO: Show Error
-                    setLoading(false)
-                }
+                // TODO: Show Error
+                setLoading(false)
             }
         }
     }
@@ -64,24 +64,26 @@ class LeaveTypesViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (checkExist(model.name)) {
-                _uiEvent.emit(LeaveTypeUiEvent.LeaveTypeExist)
                 setLoading(false)
+                return@launch
+            }
+            val result = fireStoreRepository.updateLeaveType(model)
+            if (result) {
+                fetchLeaveTypes()
             } else {
-                val result = fireStoreRepository.updateLeaveType(model)
-                if (result) {
-                    fetchLeaveTypes()
-                } else {
-                    // TODO: Show Error
-                    setLoading(false)
-                }
+                // TODO: Show Error
+                setLoading(false)
             }
         }
     }
 
-    private fun checkExist(name: String): Boolean {
-        return uiState.value.leaveTypes.any { type ->
-            type.name.equals(name, ignoreCase = true)
+    private suspend fun checkExist(name: String): Boolean {
+        val trimmed = name.removeWhiteSpaces()
+        val exist = uiState.value.leaveTypes.any { type ->
+            type.name.removeWhiteSpaces().equals(trimmed, ignoreCase = true)
         }
+        if (exist) _uiEvent.emit(LeaveTypeUiEvent.LeaveTypeExist)
+        return exist
     }
 
     private fun setLoading(loading: Boolean) {

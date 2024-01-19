@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smh.nxleave.domain.model.RoleModel
 import com.smh.nxleave.domain.repository.FireStoreRepository
+import com.smh.nxleave.utility.removeWhiteSpaces
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -18,6 +21,9 @@ class RolesViewModel @Inject constructor(
 ): ViewModel() {
     private val _uiState = MutableStateFlow(RolesUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val _uiEvent = MutableSharedFlow<RoleUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
 
     init {
         fetchRoles()
@@ -39,6 +45,10 @@ class RolesViewModel @Inject constructor(
     fun addRole(model: RoleModel) {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
+            if (checkExist(model.name)) {
+                setLoading(false)
+                return@launch
+            }
             val result = fireStoreRepository.addRole(model)
             if (result) {
                 fetchRoles()
@@ -52,6 +62,10 @@ class RolesViewModel @Inject constructor(
     fun updateRole(model: RoleModel) {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
+            if (checkExist(model.name)) {
+                setLoading(false)
+                return@launch
+            }
             val result = fireStoreRepository.updateRole(model)
             if (result) {
                 fetchRoles()
@@ -60,6 +74,15 @@ class RolesViewModel @Inject constructor(
                 setLoading(false)
             }
         }
+    }
+
+    private suspend fun checkExist(name: String): Boolean {
+        val trimmed = name.removeWhiteSpaces()
+        val exist = uiState.value.roles.any { role ->
+            role.name.removeWhiteSpaces().equals(trimmed, ignoreCase = true)
+        }
+        if (exist) _uiEvent.emit(RoleUiEvent.RoleExist)
+        return exist
     }
 
     private fun setLoading(loading: Boolean) {
@@ -73,3 +96,7 @@ data class RolesUiState(
     val loading: Boolean = false,
     val roles: List<RoleModel> = emptyList()
 )
+
+sealed interface RoleUiEvent {
+    data object RoleExist: RoleUiEvent
+}

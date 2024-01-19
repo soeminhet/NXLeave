@@ -9,3 +9,7 @@ fun String.isPassword(): Boolean {
     val passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\W).{8,}\$".toRegex()
     return passwordRegex.matches(this)
 }
+
+fun String.removeWhiteSpaces(): String {
+    return this.replace(" ", "")
+}
