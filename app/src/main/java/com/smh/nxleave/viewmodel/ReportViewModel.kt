@@ -6,10 +6,9 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smh.nxleave.domain.mapper.toUiModel
+import com.smh.nxleave.domain.mapper.toUiModels
 import com.smh.nxleave.domain.model.LeaveTypeModel
 import com.smh.nxleave.domain.model.ProjectModel
 import com.smh.nxleave.domain.model.RoleModel
@@ -104,14 +103,12 @@ class ReportViewModel @Inject constructor(
                     selectedProject = project,
                     selectedStartDate = startDate,
                     selectedEndDate = endDate,
-                    leaveRequests = leaveRequests.map { request ->
-                        request.toUiModel(
-                            projects = uiState.value.projects,
-                            roles = uiState.value.roles,
-                            staves = uiState.value.staves,
-                            leaveTypes = uiState.value.leaveTypes
-                        )
-                    }
+                    leaveRequests = leaveRequests.toUiModels(
+                        projects = uiState.value.projects,
+                        roles = uiState.value.roles,
+                        staves = uiState.value.staves,
+                        leaveTypes = uiState.value.leaveTypes
+                    )
                 )
             }
             setLoading(false)

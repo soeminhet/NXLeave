@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.ListenerRegistration
 import com.smh.nxleave.design.component.LeaveStatus
-import com.smh.nxleave.domain.mapper.toUiModel
+import com.smh.nxleave.domain.mapper.toUiModels
 import com.smh.nxleave.domain.model.AccessLevel
 import com.smh.nxleave.domain.repository.AuthRepository
 import com.smh.nxleave.domain.repository.FireStoreRepository
@@ -17,8 +17,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -81,14 +79,12 @@ class LeaveApproveViewModel @Inject constructor(
                 val staves = realTimeDataRepository.staves.value
                 val roles = realTimeDataRepository.roles.value
                 val projects = realTimeDataRepository.projects.value
-                val leaveRequestUiModels = leaveRequests.map { request ->
-                    request.toUiModel(
-                        roles = roles,
-                        staves = staves,
-                        leaveTypes = leaveTypes,
-                        projects = projects
-                    )
-                }
+                val leaveRequestUiModels = leaveRequests.toUiModels(
+                    roles = roles,
+                    staves = staves,
+                    leaveTypes = leaveTypes,
+                    projects = projects
+                )
                 _uiState.update { uiState ->
                     uiState.copy(
                         leaveRequests = leaveRequestUiModels,

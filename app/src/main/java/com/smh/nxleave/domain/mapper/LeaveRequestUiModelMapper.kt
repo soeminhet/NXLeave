@@ -16,16 +16,19 @@ fun List<LeaveRequestModel>.toUiModels(
     staves: List<StaffModel>,
     leaveTypes: List<LeaveTypeModel>,
     roles: List<RoleModel>,
-) = this.map {
-    it.toUiModel(
-        staves = staves,
-        leaveTypes = leaveTypes,
-        roles = roles,
-        projects = projects
-    )
+): List<LeaveRequestUiModel> {
+    if (projects.isEmpty() || staves.isEmpty() || leaveTypes.isEmpty() || roles.isEmpty()) return emptyList()
+    return this.map {
+        it.toUiModel(
+            staves = staves,
+            leaveTypes = leaveTypes,
+            roles = roles,
+            projects = projects
+        )
+    }
 }
 
-fun LeaveRequestModel.toUiModel(
+private fun LeaveRequestModel.toUiModel(
     projects: List<ProjectModel>,
     staves: List<StaffModel>,
     leaveTypes: List<LeaveTypeModel>,

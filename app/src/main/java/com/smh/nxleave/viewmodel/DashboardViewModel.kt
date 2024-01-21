@@ -3,7 +3,7 @@ package com.smh.nxleave.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.ListenerRegistration
-import com.smh.nxleave.domain.mapper.toUiModel
+import com.smh.nxleave.domain.mapper.toUiModels
 import com.smh.nxleave.domain.model.EventModel
 import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.domain.repository.FireStoreRepository
@@ -17,11 +17,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -75,17 +73,12 @@ class DashboardViewModel @Inject constructor(
                     val staves = realTimeDataRepository.staves.value
                     val roles = realTimeDataRepository.roles.value
                     val projects = realTimeDataRepository.projects.value
-
-                    val leaveRequestUiModels = if (roles.isNotEmpty() && leaveRequests.isNotEmpty()) {
-                        leaveRequests.map { request ->
-                            request.toUiModel(
-                                roles = roles,
-                                staves = staves,
-                                leaveTypes = leaveTypes,
-                                projects = projects
-                            )
-                        }
-                    } else emptyList()
+                    val leaveRequestUiModels = leaveRequests.toUiModels(
+                        roles = roles,
+                        staves = staves,
+                        leaveTypes = leaveTypes,
+                        projects = projects
+                    )
 
                     _uiState.update { uiState ->
                         uiState.copy(
