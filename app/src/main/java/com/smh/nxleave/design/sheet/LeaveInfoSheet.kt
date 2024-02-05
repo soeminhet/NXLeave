@@ -40,7 +40,6 @@ import com.smh.nxleave.ui.theme.spacing
 @Composable
 fun LeaveInfoSheet(
     uiModel: LeaveRequestUiModel,
-    showActions: Boolean,
     onDismiss: () -> Unit,
     onApprove: (String) -> Unit,
     onReject: (String) -> Unit,
@@ -58,7 +57,6 @@ fun LeaveInfoSheet(
     ) {
         LeaveInfoSheetContent(
             uiModel = uiModel,
-            showActions = showActions,
             onCancel = onDismiss,
             onApprove = onApprove,
             onReject = onReject
@@ -69,7 +67,6 @@ fun LeaveInfoSheet(
 @Composable
 private fun LeaveInfoSheetContent(
     uiModel: LeaveRequestUiModel,
-    showActions: Boolean,
     onCancel: () -> Unit,
     onApprove: (String) -> Unit,
     onReject: (String) -> Unit,
@@ -89,7 +86,7 @@ private fun LeaveInfoSheetContent(
                         .navigationBarsPadding(),
                     verticalArrangement = Arrangement.spacedBy(spacing.space12)
                 ) {
-                    if (showActions) {
+                    if (uiModel.leaveStatus == LeaveStatus.Pending) {
                         Button(
                             onClick = { onApprove(uiModel.id) },
                             modifier = Modifier.fillMaxWidth(),
@@ -109,24 +106,17 @@ private fun LeaveInfoSheetContent(
                         ) {
                             Text(text = "REJECT")
                         }
+                    }
 
-                        OutlinedButton(
-                            onClick = onCancel,
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                                contentColor = MaterialTheme.colorScheme.onBackground
-                            )
-                        ) {
-                            Text(text = "CANCEL")
-                        }
-                    } else {
-                        Button(
-                            onClick = onCancel,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(text = "CANCEL")
-                        }
+                    OutlinedButton(
+                        onClick = onCancel,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = MaterialTheme.colorScheme.onBackground
+                        )
+                    ) {
+                        Text(text = "CLOSE")
                     }
                 }
             }
@@ -217,7 +207,6 @@ private fun LeaveInfoSheetContentPreview() {
     NXLeaveTheme {
         LeaveInfoSheetContent(
             uiModel = LeaveRequestUiModel.examplePending,
-            showActions = true,
             onCancel = {},
             onApprove = {},
             onReject = {}

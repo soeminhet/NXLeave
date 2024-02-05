@@ -91,7 +91,6 @@ private fun LeaveApproveContent(
     leaveInfoSheetData?.let {
         LeaveInfoSheet(
             uiModel = it,
-            showActions = true,
             onDismiss = { leaveInfoSheetData = null },
             onApprove = { id ->
                 userEvent(LeaveApproveUserEvent.OnApprove(id))
