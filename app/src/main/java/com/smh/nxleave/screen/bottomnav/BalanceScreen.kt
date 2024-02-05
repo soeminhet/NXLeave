@@ -95,7 +95,7 @@ fun BalanceScreen(
             when(it) {
                 is BalanceUserEvent.OnLeaveRequest -> viewModel.submitLeaveRequest(it.model)
                 is BalanceUserEvent.OnDeleteRequest -> viewModel.deleteLeaveRequest(it.model)
-                BalanceUserEvent.OnRefresh -> viewModel.refresh()
+                BalanceUserEvent.OnRefresh -> {}
             }
         }
     )

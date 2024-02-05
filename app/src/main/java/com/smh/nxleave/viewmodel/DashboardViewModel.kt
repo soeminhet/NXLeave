@@ -6,7 +6,6 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.smh.nxleave.domain.mapper.toUiModels
 import com.smh.nxleave.domain.model.EventModel
 import com.smh.nxleave.domain.model.StaffModel
-import com.smh.nxleave.domain.repository.FireStoreRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepositoryV2
 import com.smh.nxleave.screen.model.LeaveRequestUiModel
@@ -42,7 +41,7 @@ class DashboardViewModel @Inject constructor(
 
     private fun fetchCurrentStaff() {
         viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepositoryV2.currentStaff()
+            realTimeDataRepositoryV2.getCurrentStaff()
                 .collectLatest { currentStaff ->
                     _uiState.update {
                         it.copy(currentStaff = currentStaff)
@@ -53,7 +52,7 @@ class DashboardViewModel @Inject constructor(
     }
 
     private suspend fun fetchRelatedStaffIds(projectIds: List<String>){
-        realTimeDataRepositoryV2.relatedStaffBy(projectIds)
+        realTimeDataRepositoryV2.getRelatedStaffBy(projectIds)
             .map { it.map { staff -> staff.id } }
             .distinctUntilChanged()
             .collectLatest { relatedStaffIds ->

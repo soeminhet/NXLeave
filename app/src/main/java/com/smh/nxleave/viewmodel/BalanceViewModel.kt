@@ -9,20 +9,28 @@ import com.smh.nxleave.domain.mapper.toUiModels
 import com.smh.nxleave.domain.model.AccessLevel
 import com.smh.nxleave.domain.model.LeaveBalanceModel
 import com.smh.nxleave.domain.model.LeaveTypeModel
+import com.smh.nxleave.domain.model.RoleModel
+import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.domain.repository.AuthRepository
 import com.smh.nxleave.domain.repository.FireStoreRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
+import com.smh.nxleave.domain.repository.RealTimeDataRepositoryV2
 import com.smh.nxleave.screen.model.LeaveRequestModel
 import com.smh.nxleave.screen.model.LeaveRequestUiModel
 import com.smh.nxleave.screen.model.MyLeaveBalanceUiModel
+import com.smh.nxleave.utility.combine
 import com.smh.nxleave.utility.toDays
-import com.smh.nxleave.utility.toTimeStamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
@@ -30,9 +38,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BalanceViewModel @Inject constructor(
-    private val realTimeDataRepository: RealTimeDataRepository,
     private val fireStoreRepository: FireStoreRepository,
     private val authRepository: AuthRepository,
+    private val realTimeDataRepositoryV2: RealTimeDataRepositoryV2,
 ): ViewModel() {
 
     private var _uiState = MutableStateFlow(BalanceUiState())
@@ -42,31 +50,39 @@ class BalanceViewModel @Inject constructor(
     val uiEvent = _uiEvent.asSharedFlow()
 
     private var leaveRequestListener: ListenerRegistration? = null
+    private var currentStaff: StaffModel? = null
+    private var roles: List<RoleModel> = emptyList()
 
     init {
-        listenLeaveRequest()
+        fetchLeaveRequest()
     }
 
-    fun refresh() {
-        listenLeaveRequest()
-    }
+    private fun fetchLeaveRequest() {
+        viewModelScope.launch(Dispatchers.IO) {
+            combine(
+                realTimeDataRepositoryV2.getLeaveRequestBy(authRepository.cacheStaffId),
+                realTimeDataRepositoryV2.getAllLeaveTypes(),
+                realTimeDataRepositoryV2.getAllStaves(),
+                realTimeDataRepositoryV2.getAllRoles(),
+                realTimeDataRepositoryV2.getAllProjects(),
+                fetchStaffBalance()
+            ) { leaveRequests, leaveTypes, staves, roles, projects, balances ->
+                this@BalanceViewModel.roles = roles
 
-    private fun listenLeaveRequest() {
-        setLoading(true)
-        leaveRequestListener?.remove()
-        leaveRequestListener = fireStoreRepository.getLeaveRequestBy(authRepository.cacheStaffId){
-            it.onSuccess { leaveRequests ->
-                val leaveTypes = realTimeDataRepository.leaveTypes.value
-                val staves = realTimeDataRepository.staves.value
-                val roles = realTimeDataRepository.roles.value
-                val projects = realTimeDataRepository.projects.value
-                val balances = realTimeDataRepository.currentStaffLeaveBalance.value
+                val filteredLeaveTypes = leaveTypes.filter { it.enable }
+                val filteredLeaveRequests = leaveRequests.filter {
+                    filteredLeaveTypes.any { type -> type.id == it.leaveTypeId } && it.leaveStatus != LeaveStatus.Rejected.name
+                }
 
-                val tookDays = leaveRequests.toTookDays(leaveTypes = leaveTypes)
-                val totalDays = balances.toTotalDays(leaveTypes = leaveTypes)
-                val leaveTookPercentages = leaveRequests.toPercentages(
-                    leaveTypes = leaveTypes.filter { type -> type.enable },
+                val tookDays = filteredLeaveRequests.toTookDays(leaveTypes = leaveTypes)
+                val totalDays = balances.toTotalDays(leaveTypes = filteredLeaveTypes)
+                val leaveTookPercentages = filteredLeaveRequests.toPercentages(
+                    leaveTypes = filteredLeaveTypes,
                     totalDays = totalDays
+                )
+                val myLeaveBalances = balances.toMyBalances(
+                    leaveRequests = filteredLeaveRequests,
+                    leaveTypes = filteredLeaveTypes
                 )
                 val leaveRequestUiModels = leaveRequests.toUiModels(
                     staves = staves,
@@ -74,7 +90,6 @@ class BalanceViewModel @Inject constructor(
                     roles = roles,
                     projects = projects
                 )
-                val myLeaveBalances = balances.toMyBalances(leaveRequests = leaveRequests, leaveTypes = leaveTypes)
 
                 _uiState.update { uiState ->
                     uiState.copy(
@@ -88,8 +103,21 @@ class BalanceViewModel @Inject constructor(
                         myLeaveBalances = myLeaveBalances
                     )
                 }
-                setLoading(false)
-            }
+            }.collect()
+        }
+    }
+
+    private fun fetchStaffBalance(): Flow<List<LeaveBalanceModel>> {
+        return callbackFlow {
+            realTimeDataRepositoryV2.getCurrentStaff()
+                .collectLatest { staff ->
+                    currentStaff = staff
+                    realTimeDataRepositoryV2.getLeaveBalanceBy(staff.roleId)
+                        .collectLatest { balances ->
+                            send(balances)
+                        }
+                }
+            awaitClose()
         }
     }
 
@@ -97,9 +125,10 @@ class BalanceViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val leftLeaves = leaveLeftFor(model)
             if (leftLeaves >= model.duration) {
-                realTimeDataRepository.currentStaff.value?.let { currentStaff ->
-                    val adminRoles = realTimeDataRepository.roles.value.filter { it.accessLevel == AccessLevel.All() }
-                    val isAdmin = adminRoles.any { role -> role.id == currentStaff.roleId }
+                currentStaff?.let { staff ->
+                    val adminRoles = roles.filter { it.accessLevel == AccessLevel.All() }
+                    val isAdmin = adminRoles.any { role -> role.id == staff.roleId }
+
                     val updatedModel = if (isAdmin) {
                         model.copy(
                             staffId = authRepository.cacheStaffId,
@@ -135,14 +164,6 @@ class BalanceViewModel @Inject constructor(
                 .sumOf { request -> request.duration }
 
             return leaveBalance - tookLeaves
-        }
-    }
-
-    private fun setLoading(loading: Boolean) {
-        _uiState.update {
-            it.copy(
-                loading = loading
-            )
         }
     }
 
@@ -194,7 +215,7 @@ private fun List<LeaveBalanceModel>.toMyBalances(leaveRequests: List<LeaveReques
 
 private fun List<LeaveBalanceModel>.toTotalDays(leaveTypes: List<LeaveTypeModel>): Double {
     return this
-        .filter { b -> leaveTypes.firstOrNull { t -> t.id == b.leaveTypeId }?.enable ?: false }
+        .filter { b -> leaveTypes.any { t -> t.id == b.leaveTypeId } }
         .sumOf { b -> b.balance }
         .toDouble()
 }

@@ -40,7 +40,6 @@ class LeaveApproveViewModel @Inject constructor(
             roles.firstOrNull { role -> role.id == staff?.roleId }?.accessLevel ?: AccessLevel.None()
         }
 
-
     init {
         observeRelatedStaffIds()
     }

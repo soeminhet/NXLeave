@@ -3,19 +3,14 @@ package com.smh.nxleave.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smh.nxleave.domain.model.AccessLevel
-import com.smh.nxleave.domain.model.RoleModel
 import com.smh.nxleave.domain.repository.AuthRepository
 import com.smh.nxleave.domain.repository.FireStoreRepository
-import com.smh.nxleave.domain.repository.RealTimeDataRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepositoryV2
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,7 +30,7 @@ class ProfileViewModel @Inject constructor(
 
     private fun fetchStaffInfo() {
         viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepositoryV2.currentStaff()
+            realTimeDataRepositoryV2.getCurrentStaff()
                 .collectLatest { model ->
                     val role = fireStoreRepository.getRole(model.roleId)
                     _uiState.update {

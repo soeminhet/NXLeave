@@ -24,8 +24,14 @@ interface RealTimeDataRepository {
 }
 
 interface RealTimeDataRepositoryV2 {
-    fun currentStaff(): Flow<StaffModel>
-    fun relatedStaffBy(projectIds: List<String>): Flow<List<StaffModel>>
+    fun getCurrentStaff(): Flow<StaffModel>
+    fun getRelatedStaffBy(projectIds: List<String>): Flow<List<StaffModel>>
     fun getLeaveRequestBy(staffIds: List<String>): Flow<List<LeaveRequestModel>>
+    fun getLeaveRequestBy(staffId: String): Flow<List<LeaveRequestModel>>
     fun getAllUpcomingEvent(): Flow<List<EventModel>>
+    fun getAllLeaveTypes(): Flow<List<LeaveTypeModel>>
+    fun getAllStaves(): Flow<List<StaffModel>>
+    fun getAllRoles(): Flow<List<RoleModel>>
+    fun getAllProjects(): Flow<List<ProjectModel>>
+    fun getLeaveBalanceBy(roleId: String): Flow<List<LeaveBalanceModel>>
 }
