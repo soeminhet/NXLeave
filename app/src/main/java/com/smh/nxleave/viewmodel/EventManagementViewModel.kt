@@ -46,6 +46,7 @@ class EventManagementViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (checkExist(model.name)) {
+                _uiEvent.emit(EventManagementUiEvent.EventExist)
                 setLoading(false)
                 return@launch
             }
@@ -62,6 +63,7 @@ class EventManagementViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (checkExist(model.name)) {
+                _uiEvent.emit(EventManagementUiEvent.EventExist)
                 setLoading(false)
                 return@launch
             }
@@ -86,13 +88,11 @@ class EventManagementViewModel @Inject constructor(
         }
     }
 
-    private suspend fun checkExist(name: String): Boolean {
+    private fun checkExist(name: String): Boolean {
         val trimmed = name.removeWhiteSpaces()
-        val exist = uiState.value.events.any { event ->
+        return uiState.value.events.any { event ->
             event.name.removeWhiteSpaces().equals(trimmed, ignoreCase = true)
         }
-        if (exist) _uiEvent.emit(EventManagementUiEvent.EventExist)
-        return exist
     }
 
     private fun setLoading(loading: Boolean) {
