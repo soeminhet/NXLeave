@@ -7,6 +7,7 @@ import com.smh.nxleave.domain.model.RoleModel
 import com.smh.nxleave.domain.repository.AuthRepository
 import com.smh.nxleave.domain.repository.FireStoreRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
+import com.smh.nxleave.domain.repository.RealTimeDataRepositoryV2
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,63 +22,35 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val realTimeDataRepository: RealTimeDataRepository,
+    private val realTimeDataRepositoryV2: RealTimeDataRepositoryV2,
     private val fireStoreRepository: FireStoreRepository,
     private val authRepository: AuthRepository,
 ): ViewModel() {
-
-    private var staffId = ""
-    private var role: RoleModel? = null
-
     private var _uiState = MutableStateFlow(ProfileUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
         fetchStaffInfo()
-        observeAccessLevel()
     }
 
-    private fun observeAccessLevel() {
+    private fun fetchStaffInfo() {
         viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepository.currentStaff
-                .combine(realTimeDataRepository.roles) { staff, roles ->
-                    roles.firstOrNull { role -> role.id == staff?.roleId }?.accessLevel ?: AccessLevel.None()
-                }
-                .map {
-                    it == AccessLevel.All()
-                }
-                .distinctUntilChanged()
-                .collectLatest { show ->
+            realTimeDataRepositoryV2.currentStaff()
+                .collectLatest { model ->
+                    val role = fireStoreRepository.getRole(model.roleId)
                     _uiState.update {
                         it.copy(
-                            showManagement = show
+                            name = model.name,
+                            photoURL = model.photo,
+                            roleName = role?.name ?: "",
+                            showManagement = role?.accessLevel == AccessLevel.All()
                         )
                     }
                 }
         }
     }
 
-    private fun fetchStaffInfo() {
-        viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepository.currentStaff
-                .collectLatest { model ->
-                    if (model != null) {
-                        role = fireStoreRepository.getRole(model.roleId)
-                        _uiState.update {
-                            it.copy(
-                                name = model.name,
-                                photoURL = model.photo,
-                                roleName = role?.name ?: ""
-                            )
-                        }
-                    }
-                }
-        }
-    }
-
     fun logout() {
-        staffId = ""
-        role = null
         viewModelScope.launch(Dispatchers.IO) {
             authRepository.updateStaffId("")
         }

@@ -1,12 +1,10 @@
 package com.smh.nxleave.design.component
 
-import NX_BlackVariant
 import android.Manifest
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -48,8 +46,6 @@ fun NXProfile(
     url: String,
     modifier: Modifier = Modifier,
     size: Dp = 100.dp,
-    borderWidth: Dp = 4.dp,
-    borderColor: Color = NX_BlackVariant,
     onUpdateProfileImage: ((File) -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -128,11 +124,6 @@ fun NXProfile(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(size)
-                .border(
-                    width = borderWidth,
-                    color = borderColor,
-                    shape = CircleShape
-                )
                 .clip(CircleShape),
         )
 

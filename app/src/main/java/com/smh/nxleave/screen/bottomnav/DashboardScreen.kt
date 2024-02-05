@@ -85,8 +85,6 @@ private fun DashboardContent(
                 NXProfile(
                     url = uiState.currentStaff?.photo.orEmpty(),
                     size = 50.dp,
-                    borderWidth = 0.dp,
-                    borderColor = Color.Transparent
                 )
             }
         },

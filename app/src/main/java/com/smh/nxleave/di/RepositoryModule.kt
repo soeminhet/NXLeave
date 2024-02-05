@@ -3,10 +3,12 @@ package com.smh.nxleave.di
 import com.smh.nxleave.data.repository.AuthRepositoryImpl
 import com.smh.nxleave.data.repository.FireStoreRepositoryImpl
 import com.smh.nxleave.data.repository.RealTimeDataRepositoryImpl
+import com.smh.nxleave.data.repository.RealTimeDataRepositoryV2Impl
 import com.smh.nxleave.data.repository.StorageRepositoryImpl
 import com.smh.nxleave.domain.repository.AuthRepository
 import com.smh.nxleave.domain.repository.FireStoreRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
+import com.smh.nxleave.domain.repository.RealTimeDataRepositoryV2
 import com.smh.nxleave.domain.repository.StorageRepository
 import dagger.Binds
 import dagger.Module
@@ -40,4 +42,10 @@ abstract class RepositoryModule {
     abstract fun bindRealTimeDataRepository(
         realTimeDataRepositoryImpl: RealTimeDataRepositoryImpl
     ): RealTimeDataRepository
+
+    @Singleton
+    @Binds
+    abstract fun bindRealTimeDataRepositoryV2(
+        realTimeDataRepositoryV2Impl: RealTimeDataRepositoryV2Impl
+    ): RealTimeDataRepositoryV2
 }

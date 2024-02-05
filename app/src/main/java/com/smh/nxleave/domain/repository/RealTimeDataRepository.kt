@@ -5,6 +5,7 @@ import com.smh.nxleave.domain.model.LeaveTypeModel
 import com.smh.nxleave.domain.model.ProjectModel
 import com.smh.nxleave.domain.model.RoleModel
 import com.smh.nxleave.domain.model.StaffModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface RealTimeDataRepository {
@@ -18,4 +19,8 @@ interface RealTimeDataRepository {
 
     fun removeAllListeners()
     fun onClear()
+}
+
+interface RealTimeDataRepositoryV2 {
+    fun currentStaff(): Flow<StaffModel>
 }

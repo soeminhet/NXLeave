@@ -243,9 +243,7 @@ private fun ProfileContent(
 
                 Button(
                     onClick = { navigationEvent(ProfileScreenNavigationEvent.ToEditProfile) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NX_White
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = NX_White),
                     modifier = Modifier
                         .statusBarsPadding()
                         .padding(
