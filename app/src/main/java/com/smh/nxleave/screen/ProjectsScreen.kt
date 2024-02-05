@@ -68,6 +68,8 @@ fun ProjectsScreen(
                 ProjectsUserEvent.OnBack -> onBack()
                 is ProjectsUserEvent.OnAddProject -> viewModel.addProject(it.model)
                 is ProjectsUserEvent.OnUpdateProject -> viewModel.updateProject(it.model)
+                is ProjectsUserEvent.OnDisableProject -> viewModel.updateProjectEnable(it.model.copy(enable = false))
+                is ProjectsUserEvent.OnEnableProject -> viewModel.updateProjectEnable(it.model.copy(enable = true))
             }
         }
     )
@@ -111,7 +113,7 @@ private fun ProjectsContent(
             title = "Disable",
             body = "Are you sure want to disable ${model.name}?",
             confirmButton = {
-                userEvent(ProjectsUserEvent.OnUpdateProject(model.copy(enable = false)))
+                userEvent(ProjectsUserEvent.OnDisableProject(model))
                 showDisableDialog = null
             },
             dismissButton = { showDisableDialog = null }
@@ -146,7 +148,7 @@ private fun ProjectsContent(
                     model = model,
                     onEdit = { showEditSheet = it },
                     onDisable = { showDisableDialog = it },
-                    onEnable = { userEvent(ProjectsUserEvent.OnUpdateProject(model.copy(enable = true))) },
+                    onEnable = { userEvent(ProjectsUserEvent.OnEnableProject(model)) },
                     modifier = Modifier.animateItemPlacement()
                 )
             }
@@ -158,6 +160,8 @@ sealed interface ProjectsUserEvent {
     data object OnBack: ProjectsUserEvent
     data class OnAddProject(val model: ProjectModel): ProjectsUserEvent
     data class OnUpdateProject(val model: ProjectModel): ProjectsUserEvent
+    data class OnEnableProject(val model: ProjectModel): ProjectsUserEvent
+    data class OnDisableProject(val model: ProjectModel): ProjectsUserEvent
 }
 
 @Preview

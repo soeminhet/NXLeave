@@ -36,17 +36,7 @@ class ProjectsViewModel @Inject constructor(
     private fun fetchProjects() {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            val allStaves = realTimeDataRepository.staves.value
-            val approveRoles = realTimeDataRepository.roles.value.filter { it.accessLevel == AccessLevel.Approve() }
-            val approveStaves = allStaves.filter { approveRoles.any { role -> role.id == it.roleId } }
-            val models = fireStoreRepository.getAllProjects().map {
-                val managers =
-                    approveStaves.filter { staff -> staff.currentProjectIds.contains(it.id) }
-                        .joinToString { staff -> staff.name }
-                it.copy(
-                    managerName = managers
-                )
-            }
+            val models = fireStoreRepository.getAllProjects().sortedBy { it.name }
             _uiState.update {
                 it.copy(
                     projects = models
@@ -60,6 +50,7 @@ class ProjectsViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (checkExist(model.name)) {
+                _uiEvent.emit(ProjectsUiEvent.ProjectExist)
                 setLoading(false)
                 return@launch
             }
@@ -68,12 +59,8 @@ class ProjectsViewModel @Inject constructor(
                 adminRoles.any { role -> role.id == it.roleId}
             }
             val result = fireStoreRepository.addProject(model, admins)
-            if (result) {
-                fetchProjects()
-            } else {
-                // TODO: Show Error
-                setLoading(false)
-            }
+            if (result) fetchProjects()
+            else setLoading(false)
         }
     }
 
@@ -81,26 +68,30 @@ class ProjectsViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (checkExist(model.name)) {
+                _uiEvent.emit(ProjectsUiEvent.ProjectExist)
                 setLoading(false)
                 return@launch
             }
             val result = fireStoreRepository.updateProject(model)
-            if (result) {
-                fetchProjects()
-            } else {
-                // TODO: Show Error
-                setLoading(false)
-            }
+            if (result) fetchProjects()
+            else setLoading(false)
         }
     }
 
-    private suspend fun checkExist(name: String): Boolean {
+    fun updateProjectEnable(model: ProjectModel) {
+        setLoading(true)
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = fireStoreRepository.updateProject(model)
+            if (result) fetchProjects()
+            else setLoading(false)
+        }
+    }
+
+    private fun checkExist(name: String): Boolean {
         val trimmed = name.removeWhiteSpaces()
-        val exist = uiState.value.projects.any { project ->
+        return uiState.value.projects.any { project ->
             project.name.removeWhiteSpaces().equals(trimmed, ignoreCase = true)
         }
-        if (exist) _uiEvent.emit(ProjectsUiEvent.ProjectExist)
-        return exist
     }
 
     private fun setLoading(loading: Boolean) {

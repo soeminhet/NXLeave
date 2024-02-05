@@ -11,6 +11,5 @@ fun ProjectModel.toFireStoreMap(): Map<String, Any> = hashMapOf(
 fun Map<String, Any>.toProjectModel(): ProjectModel = ProjectModel(
     id = get("id") as String,
     name = get("name") as String,
-    managerName = "",
     enable = get("enable") as? Boolean ?: false
 )

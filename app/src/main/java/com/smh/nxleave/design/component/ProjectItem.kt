@@ -59,31 +59,19 @@ fun ProjectItem(
     Column(
         modifier = modifier.clickable { showOptionsSheet = true }
     ) {
-        Column(
+        Text(
+            text = model.name,
+            style = MaterialTheme.typography.bodyLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = LocalContentColor.current.copy(alpha = animateEnableDisableAlpha),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
                     vertical = spacing.space12,
                     horizontal = spacing.horizontalSpace
                 )
-        ) {
-            Text(
-                text = model.name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = LocalContentColor.current.copy(alpha = animateEnableDisableAlpha)
-            )
-
-            Text(
-                text = model.managerName,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = LocalContentColor.current.copy(alpha = animateEnableDisableAlpha)
-            )
-        }
+        )
 
         Divider()
     }

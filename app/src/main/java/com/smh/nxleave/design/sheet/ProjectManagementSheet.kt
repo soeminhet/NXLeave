@@ -102,7 +102,6 @@ private fun ProjectManagementContent(
                 ) ?: ProjectModel(
                     id = "",
                     name = name,
-                    managerName = "",
                     enable = true
                 )
                 onSubmit(newModel)
