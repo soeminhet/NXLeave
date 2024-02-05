@@ -55,8 +55,6 @@ fun LeaveApproveScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    if (uiState.loading) NXLoading()
-
     LeaveApproveContent(
         uiState = uiState,
         userEvent = {

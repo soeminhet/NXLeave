@@ -33,14 +33,6 @@ class RealTimeDataRepositoryImpl @Inject constructor(
     override val currentStaff: StateFlow<StaffModel?>
         get() = _currentStaff.asStateFlow()
 
-    private val _currentStaffLeaveBalance: MutableStateFlow<List<LeaveBalanceModel>> = MutableStateFlow(emptyList())
-    override val currentStaffLeaveBalance: StateFlow<List<LeaveBalanceModel>>
-        get() = _currentStaffLeaveBalance.asStateFlow()
-
-    private val _relatedStaves: MutableStateFlow<List<StaffModel>> = MutableStateFlow(emptyList())
-    override val relatedStaves: StateFlow<List<StaffModel>>
-        get() = _relatedStaves.asStateFlow()
-
     private val _projects: MutableStateFlow<List<ProjectModel>> = MutableStateFlow(emptyList())
     override val projects: StateFlow<List<ProjectModel>>
         get() = _projects.asStateFlow()
@@ -92,32 +84,6 @@ class RealTimeDataRepositoryImpl @Inject constructor(
             .addSnapshotListener { value, _ ->
                 val staff = value?.data?.toStaffModel()
                 _currentStaff.value = staff
-                if (staff != null) {
-                    listenRelatedStaff(staff.currentProjectIds)
-                    listenCurrentStaffLeaveBalance(staff.roleId)
-                }
-            }
-    }
-
-    private fun listenRelatedStaff(projectIds: List<String>) {
-        relatedStavesListenerRegistration?.remove()
-        relatedStavesListenerRegistration = fireStoreRemoteDataSource.getRTStavesBy(projectIds)
-            .addSnapshotListener { value, _ ->
-                _relatedStaves.value = value?.documents
-                    ?.mapNotNull { it.data }
-                    ?.map { it.toStaffModel() }
-                    .orEmpty()
-            }
-    }
-
-    private fun listenCurrentStaffLeaveBalance(roleId: String) {
-        currentStaffLeaveBalanceListenerRegistration?.remove()
-        currentStaffLeaveBalanceListenerRegistration = fireStoreRemoteDataSource.getRTLeaveBalanceBy(roleId = roleId)
-            .addSnapshotListener { value, _ ->
-                _currentStaffLeaveBalance.value = value?.documents
-                    ?.mapNotNull { it.data }
-                    ?.map { it.toLeaveRequestModel() }
-                    .orEmpty()
             }
     }
 

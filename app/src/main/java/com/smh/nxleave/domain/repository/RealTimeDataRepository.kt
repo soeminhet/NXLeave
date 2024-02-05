@@ -12,8 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface RealTimeDataRepository {
     val currentStaff: StateFlow<StaffModel?>
-    val currentStaffLeaveBalance: StateFlow<List<LeaveBalanceModel>>
-    val relatedStaves: StateFlow<List<StaffModel>>
     val projects: StateFlow<List<ProjectModel>>
     val staves: StateFlow<List<StaffModel>>
     val roles: StateFlow<List<RoleModel>>
