@@ -44,7 +44,7 @@ class StaffManagementViewModel @Inject constructor(
     private fun fetchStaves() {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            val staves = fireStoreRepository.getAllStaff()
+            val staves = fireStoreRepository.getAllStaff().sortedBy { it.name }
             val roles = fireStoreRepository.getAllRoles()
             val mappedStaves = staves.toUIModels(roles)
             _uiState.update {
@@ -74,6 +74,7 @@ class StaffManagementViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch {
             if (checkExist(model.name)) {
+                _uiEvent.emit(StaffManagementUiEvent.AccountExist)
                 setLoading(false)
                 return@launch
             }
@@ -98,15 +99,9 @@ class StaffManagementViewModel @Inject constructor(
         }
     }
 
-    fun updateStaff(model: StaffProfileUiModel) {
+    fun updateStaffEnable(model: StaffProfileUiModel) {
         setLoading(true)
-        viewModelScope.launch {
-            if (checkExist(model.name)) {
-                setLoading(false)
-                return@launch
-            }
-            updateStaff(model.toModel())
-        }
+        updateStaff(model.toModel())
     }
 
     private fun updateStaff(model: StaffModel) {
@@ -125,13 +120,11 @@ class StaffManagementViewModel @Inject constructor(
         }
     }
 
-    private suspend fun checkExist(name: String): Boolean {
+    private fun checkExist(name: String): Boolean {
         val trimmed = name.removeWhiteSpaces()
-        val exist = uiState.value.staves.any { staff ->
+        return uiState.value.staves.any { staff ->
             staff.name.removeWhiteSpaces().equals(trimmed, ignoreCase = true)
         }
-        if (exist) _uiEvent.emit(StaffManagementUiEvent.AccountExist)
-        return exist
     }
 
     private fun setLoading(loading: Boolean) {

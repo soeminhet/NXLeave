@@ -71,8 +71,8 @@ fun StaffManagementScreen(
             when(it) {
                 StaffManagementUserEvent.OnBack -> onBack()
                 is StaffManagementUserEvent.OnManageStaff -> viewModel.mangeAccount(it.model, it.password)
-                is StaffManagementUserEvent.OnDisableStaff -> viewModel.updateStaff(it.model.copy(enable = false))
-                is StaffManagementUserEvent.OnEnableStaff -> viewModel.updateStaff(it.model.copy(enable = true))
+                is StaffManagementUserEvent.OnDisableStaff -> viewModel.updateStaffEnable(it.model.copy(enable = false))
+                is StaffManagementUserEvent.OnEnableStaff -> viewModel.updateStaffEnable(it.model.copy(enable = true))
             }
         }
     )

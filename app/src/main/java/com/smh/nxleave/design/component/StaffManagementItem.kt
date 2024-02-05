@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -81,6 +82,7 @@ fun StaffManagementItem(
                 contentDescription = "ProfilePicture",
                 placeholder = painterResource(id = R.drawable.placeholder_default),
                 error = painterResource(id = R.drawable.placeholder_default),
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
