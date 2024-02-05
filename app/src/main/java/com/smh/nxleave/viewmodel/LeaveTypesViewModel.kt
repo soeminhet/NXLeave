@@ -47,16 +47,13 @@ class LeaveTypesViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (checkExist(name)) {
+                _uiEvent.emit(LeaveTypeUiEvent.LeaveTypeExist)
                 setLoading(false)
                 return@launch
             }
             val result = fireStoreRepository.addLeaveType(name, color)
-            if (result) {
-                fetchLeaveTypes()
-            } else {
-                // TODO: Show Error
-                setLoading(false)
-            }
+            if (result) fetchLeaveTypes()
+            else setLoading(false)
         }
     }
 
@@ -64,26 +61,30 @@ class LeaveTypesViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (checkExist(model.name)) {
+                _uiEvent.emit(LeaveTypeUiEvent.LeaveTypeExist)
                 setLoading(false)
                 return@launch
             }
             val result = fireStoreRepository.updateLeaveType(model)
-            if (result) {
-                fetchLeaveTypes()
-            } else {
-                // TODO: Show Error
-                setLoading(false)
-            }
+            if (result) fetchLeaveTypes()
+            else setLoading(false)
         }
     }
 
-    private suspend fun checkExist(name: String): Boolean {
+    fun updateLeaveTypeEnable(model: LeaveTypeModel) {
+        setLoading(true)
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = fireStoreRepository.updateLeaveType(model)
+            if (result) fetchLeaveTypes()
+            else setLoading(false)
+        }
+    }
+
+    private fun checkExist(name: String): Boolean {
         val trimmed = name.removeWhiteSpaces()
-        val exist = uiState.value.leaveTypes.any { type ->
+        return uiState.value.leaveTypes.any { type ->
             type.name.removeWhiteSpaces().equals(trimmed, ignoreCase = true)
         }
-        if (exist) _uiEvent.emit(LeaveTypeUiEvent.LeaveTypeExist)
-        return exist
     }
 
     private fun setLoading(loading: Boolean) {

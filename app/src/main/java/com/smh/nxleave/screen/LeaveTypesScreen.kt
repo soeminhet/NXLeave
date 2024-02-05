@@ -65,9 +65,9 @@ fun LeaveTypesScreen(
             when(it) {
                 LeaveTypesUserEvent.OnBack -> onBack()
                 is LeaveTypesUserEvent.OnAddLeaveType -> viewModel.addLeaveType(it.name, it.color)
-                is LeaveTypesUserEvent.OnDisableLeaveType -> viewModel.updateLeaveType(it.model.copy(enable = false))
+                is LeaveTypesUserEvent.OnDisableLeaveType -> viewModel.updateLeaveTypeEnable(it.model.copy(enable = false))
                 is LeaveTypesUserEvent.OnUpdateLeaveType -> viewModel.updateLeaveType(it.model)
-                is LeaveTypesUserEvent.OnEnableLeaveType -> viewModel.updateLeaveType(it.model.copy(enable = true))
+                is LeaveTypesUserEvent.OnEnableLeaveType -> viewModel.updateLeaveTypeEnable(it.model.copy(enable = true))
             }
         }
     )
