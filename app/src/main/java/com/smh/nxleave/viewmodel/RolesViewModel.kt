@@ -46,16 +46,13 @@ class RolesViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (checkExist(model.name)) {
+                _uiEvent.emit(RoleUiEvent.RoleExist)
                 setLoading(false)
                 return@launch
             }
             val result = fireStoreRepository.addRole(model)
-            if (result) {
-                fetchRoles()
-            } else {
-                // TODO: Show Error
-                setLoading(false)
-            }
+            if (result) fetchRoles()
+            else setLoading(false)
         }
     }
 
@@ -63,26 +60,30 @@ class RolesViewModel @Inject constructor(
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             if (checkExist(model.name)) {
+                _uiEvent.emit(RoleUiEvent.RoleExist)
                 setLoading(false)
                 return@launch
             }
             val result = fireStoreRepository.updateRole(model)
-            if (result) {
-                fetchRoles()
-            } else {
-                // TODO: Show Error
-                setLoading(false)
-            }
+            if (result) fetchRoles()
+            else setLoading(false)
         }
     }
 
-    private suspend fun checkExist(name: String): Boolean {
+    fun updateRoleEnable(model: RoleModel) {
+        setLoading(true)
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = fireStoreRepository.updateRole(model)
+            if (result) fetchRoles()
+            else setLoading(false)
+        }
+    }
+
+    private fun checkExist(name: String): Boolean {
         val trimmed = name.removeWhiteSpaces()
-        val exist = uiState.value.roles.any { role ->
+        return uiState.value.roles.any { role ->
             role.name.removeWhiteSpaces().equals(trimmed, ignoreCase = true)
         }
-        if (exist) _uiEvent.emit(RoleUiEvent.RoleExist)
-        return exist
     }
 
     private fun setLoading(loading: Boolean) {

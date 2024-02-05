@@ -67,6 +67,8 @@ fun RolesScreen(
                 RolesUserEvent.OnBack -> onBack()
                 is RolesUserEvent.OnAddRole -> viewModel.addRole(it.model)
                 is RolesUserEvent.OnUpdateRole -> viewModel.updateRole(it.model)
+                is RolesUserEvent.OnDisableRole -> viewModel.updateRoleEnable(it.model.copy(enable = false))
+                is RolesUserEvent.OnEnableRole -> viewModel.updateRoleEnable(it.model.copy(enable = true))
             }
         }
     )
@@ -108,7 +110,7 @@ private fun RolesContent(
             title = "Disable",
             body = "Are you sure want to disable ${model.name}?",
             confirmButton = {
-                userEvent(RolesUserEvent.OnUpdateRole(model.copy(enable = false)))
+                userEvent(RolesUserEvent.OnDisableRole(model))
                 showDeleteDialog = null
             },
             dismissButton = { showDeleteDialog = null }
@@ -145,7 +147,7 @@ private fun RolesContent(
                     label = model.name,
                     onEdit = { showEditSheet = it },
                     onDisable = { showDeleteDialog = it },
-                    onEnable = { userEvent(RolesUserEvent.OnUpdateRole(model.copy(enable = true))) },
+                    onEnable = { userEvent(RolesUserEvent.OnEnableRole(model)) },
                     modifier = Modifier.animateItemPlacement()
                 )
             }
@@ -157,6 +159,8 @@ sealed interface RolesUserEvent {
     data object OnBack: RolesUserEvent
     data class OnAddRole(val model: RoleModel): RolesUserEvent
     data class OnUpdateRole(val model: RoleModel): RolesUserEvent
+    data class OnEnableRole(val model: RoleModel): RolesUserEvent
+    data class OnDisableRole(val model: RoleModel): RolesUserEvent
 }
 
 @Preview(showBackground = true)

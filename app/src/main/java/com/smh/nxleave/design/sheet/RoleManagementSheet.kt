@@ -39,7 +39,7 @@ fun RoleManagementSheet(
     onSubmit: (RoleModel) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
-    val skipPartiallyExpanded by remember { mutableStateOf(false) }
+    val skipPartiallyExpanded by remember { mutableStateOf(true) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded)
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
