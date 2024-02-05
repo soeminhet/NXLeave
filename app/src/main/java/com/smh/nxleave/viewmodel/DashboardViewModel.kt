@@ -8,6 +8,7 @@ import com.smh.nxleave.domain.model.EventModel
 import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.domain.repository.FireStoreRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
+import com.smh.nxleave.domain.repository.RealTimeDataRepositoryV2
 import com.smh.nxleave.screen.model.LeaveRequestUiModel
 import com.smh.nxleave.utility.DATE_PATTERN_THREE
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val realTimeDataRepository: RealTimeDataRepository,
-    private val fireStoreRepository: FireStoreRepository,
+    private val realTimeDataRepositoryV2: RealTimeDataRepositoryV2
 ): ViewModel() {
 
     private var _uiState = MutableStateFlow(DashboardUiState())
@@ -35,70 +36,65 @@ class DashboardViewModel @Inject constructor(
     private var upcomingEventListener: ListenerRegistration? = null
 
     init {
-        observeRelatedStaffIds()
-        observeCurrentStaff()
-        listenUpcomingEvent()
+        fetchCurrentStaff()
+        fetchUpcomingEvents()
     }
 
-    private fun observeCurrentStaff() {
+    private fun fetchCurrentStaff() {
         viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepository.currentStaff
+            realTimeDataRepositoryV2.currentStaff()
                 .collectLatest { currentStaff ->
                     _uiState.update {
                         it.copy(currentStaff = currentStaff)
                     }
+                    fetchRelatedStaffIds(currentStaff.currentProjectIds)
                 }
         }
     }
 
-    private fun observeRelatedStaffIds() {
-        viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepository.relatedStaves
-                .map { it.map { staff -> staff.id } }
-                .distinctUntilChanged()
-                .collectLatest { relatedStaffIds ->
-                    if (relatedStaffIds.isNotEmpty()) {
-                        listenLeaveRequest(relatedStaffIds)
-                    }
+    private suspend fun fetchRelatedStaffIds(projectIds: List<String>){
+        realTimeDataRepositoryV2.relatedStaffBy(projectIds)
+            .map { it.map { staff -> staff.id } }
+            .distinctUntilChanged()
+            .collectLatest { relatedStaffIds ->
+                if (relatedStaffIds.isNotEmpty()) {
+                    fetchLeaveRequest(relatedStaffIds)
                 }
-        }
+            }
     }
 
-    private fun listenLeaveRequest(relatedStaffIds: List<String>) {
-        leaveRequestListener?.remove()
-        leaveRequestListener =
-            fireStoreRepository.getLeaveRequestBy(relatedStaffIds) {
-                it.onSuccess { leaveRequests ->
-                    val leaveTypes = realTimeDataRepository.leaveTypes.value
-                    val staves = realTimeDataRepository.staves.value
-                    val roles = realTimeDataRepository.roles.value
-                    val projects = realTimeDataRepository.projects.value
-                    val leaveRequestUiModels = leaveRequests.toUiModels(
-                        roles = roles,
-                        staves = staves,
-                        leaveTypes = leaveTypes,
-                        projects = projects
+    private suspend fun fetchLeaveRequest(relatedStaffIds: List<String>) {
+        realTimeDataRepositoryV2.getLeaveRequestBy(relatedStaffIds)
+            .collectLatest { leaveRequests ->
+                val leaveTypes = realTimeDataRepository.leaveTypes.value
+                val staves = realTimeDataRepository.staves.value
+                val roles = realTimeDataRepository.roles.value
+                val projects = realTimeDataRepository.projects.value
+                val leaveRequestUiModels = leaveRequests.toUiModels(
+                    roles = roles,
+                    staves = staves,
+                    leaveTypes = leaveTypes,
+                    projects = projects
+                )
+
+                _uiState.update { uiState ->
+                    uiState.copy(
+                        leaveRequests = leaveRequestUiModels,
                     )
+                }
+            }
+    }
 
+    private fun fetchUpcomingEvents() {
+        viewModelScope.launch(Dispatchers.IO) {
+            realTimeDataRepositoryV2.getAllUpcomingEvent()
+                .collectLatest { events ->
                     _uiState.update { uiState ->
                         uiState.copy(
-                            leaveRequests = leaveRequestUiModels,
+                            upcomingEvents = events
                         )
                     }
                 }
-            }
-    }
-
-    private fun listenUpcomingEvent() {
-        upcomingEventListener?.remove()
-        upcomingEventListener = fireStoreRepository.getAllUpcomingEvents {
-            it.onSuccess { events ->
-                _uiState.update { uiState ->
-                    uiState.copy(
-                        upcomingEvents = events
-                    )
-                }
-            }
         }
     }
 
