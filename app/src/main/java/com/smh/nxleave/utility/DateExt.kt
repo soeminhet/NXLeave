@@ -9,11 +9,9 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 
-val DATE_PATTERN_ONE = DateTimeFormatter.ofPattern("dd MMM yyyy")
-val DATE_PATTERN_TWO = DateTimeFormatter.ofPattern("dd, MMM yyyy")
+val DATE_PATTERN_ONE = DateTimeFormatter.ofPattern("dd MMMM yyyy")
 val DATE_PATTERN_THREE = DateTimeFormatter.ofPattern("d MMM")
 val DATE_TIME_PATTERN_ONE =  DateTimeFormatter.ofPattern("dd_MMM_yyyy_hh_mm_ss")
-
 
 fun OffsetDateTime.toTimeStamp(): Timestamp {
     return Timestamp(Date.from(this.toInstant()))

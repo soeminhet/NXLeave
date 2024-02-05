@@ -28,7 +28,7 @@ fun Context.sendEmail() {
 }
 
 fun Context.callPhone() {
-    val phoneNumber = "091112233"
+    val phoneNumber = "09111222333"
     val intent = Intent(Intent.ACTION_CALL, Uri.parse("tel:$phoneNumber"))
     startActivity(intent)
 }

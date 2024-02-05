@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.smh.nxleave.domain.model.EventModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
 import com.smh.nxleave.ui.theme.spacing
-import com.smh.nxleave.utility.DATE_PATTERN_TWO
+import com.smh.nxleave.utility.DATE_PATTERN_ONE
 
 @Composable
 fun UpcomingHolidayCard(
@@ -36,7 +36,7 @@ fun UpcomingHolidayCard(
             )
 
             Text(
-                text = event.date.format(DATE_PATTERN_TWO),
+                text = event.date.format(DATE_PATTERN_ONE),
                 style = MaterialTheme.typography.titleMedium
             )
 

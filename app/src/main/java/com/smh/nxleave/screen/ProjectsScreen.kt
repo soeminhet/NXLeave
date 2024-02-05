@@ -28,6 +28,7 @@ import com.smh.nxleave.design.component.ProjectItem
 import com.smh.nxleave.design.sheet.ProjectManagementSheet
 import com.smh.nxleave.domain.model.ProjectModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
+import com.smh.nxleave.ui.theme.spacing
 import com.smh.nxleave.viewmodel.ProjectsUiEvent
 import com.smh.nxleave.viewmodel.ProjectsUiState
 import com.smh.nxleave.viewmodel.ProjectsViewModel
