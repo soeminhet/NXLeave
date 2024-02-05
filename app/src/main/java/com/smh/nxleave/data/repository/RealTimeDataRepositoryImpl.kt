@@ -2,26 +2,26 @@ package com.smh.nxleave.data.repository
 
 import com.google.firebase.firestore.ListenerRegistration
 import com.smh.nxleave.data.local.datastore.LocalDataStore
+import com.smh.nxleave.data.mapper.toEventModel
 import com.smh.nxleave.data.mapper.toLeaveRequestModel
 import com.smh.nxleave.data.mapper.toLeaveTypeModel
 import com.smh.nxleave.data.mapper.toProjectModel
 import com.smh.nxleave.data.mapper.toRoleModel
 import com.smh.nxleave.data.mapper.toStaffModel
 import com.smh.nxleave.data.remote.firestore.FireStoreRemoteDataSource
+import com.smh.nxleave.domain.model.EventModel
 import com.smh.nxleave.domain.model.LeaveBalanceModel
 import com.smh.nxleave.domain.model.LeaveTypeModel
 import com.smh.nxleave.domain.model.ProjectModel
 import com.smh.nxleave.domain.model.RoleModel
 import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import com.smh.nxleave.screen.model.LeaveRequestModel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,120 +29,180 @@ class RealTimeDataRepositoryImpl @Inject constructor(
     private val fireStoreRemoteDataSource: FireStoreRemoteDataSource,
     private val localDataStore: LocalDataStore,
 ): RealTimeDataRepository {
-    private val _currentStaff: MutableStateFlow<StaffModel?> = MutableStateFlow(null)
-    override val currentStaff: StateFlow<StaffModel?>
-        get() = _currentStaff.asStateFlow()
-
-    private val _projects: MutableStateFlow<List<ProjectModel>> = MutableStateFlow(emptyList())
-    override val projects: StateFlow<List<ProjectModel>>
-        get() = _projects.asStateFlow()
-
-    private val _staves: MutableStateFlow<List<StaffModel>> = MutableStateFlow(emptyList())
-    override val staves: StateFlow<List<StaffModel>>
-        get() = _staves.asStateFlow()
-
-    private val _roles: MutableStateFlow<List<RoleModel>> = MutableStateFlow(emptyList())
-    override val roles: StateFlow<List<RoleModel>>
-        get() = _roles.asStateFlow()
-
-    private val _leaveTypes: MutableStateFlow<List<LeaveTypeModel>> = MutableStateFlow(emptyList())
-    override val leaveTypes: StateFlow<List<LeaveTypeModel>>
-        get() = _leaveTypes.asStateFlow()
-
-    private var initJob: Job? = null
-    private var projectListenerRegistration: ListenerRegistration? = null
-    private var stavesListenerRegistration: ListenerRegistration? = null
-    private var rolesListenerRegistration: ListenerRegistration? = null
-    private var leaveTypesListenerRegistration: ListenerRegistration? = null
-    private var currentStaffListenerRegistration: ListenerRegistration? = null
-    private var relatedStavesListenerRegistration: ListenerRegistration? = null
-    private var currentStaffLeaveBalanceListenerRegistration: ListenerRegistration? = null
-
-    init {
-        initJob = CoroutineScope(Dispatchers.IO).launch {
-            launch {
-                localDataStore.staffIdFlow
-                    .distinctUntilChanged()
-                    .collectLatest { id ->
-                        if (id.isNotBlank()) {
-                            listenCurrentStaff(id)
-                            listenProjects()
-                            listenStaves()
-                            listenRoles()
-                            listenLeaveTypes()
-                        } else {
-                            removeAllListeners()
+    override fun getCurrentStaff(): Flow<StaffModel> {
+        return callbackFlow {
+            var listener: ListenerRegistration? = null
+            localDataStore.staffIdFlow
+                .filterNot { it.isEmpty() }
+                .collectLatest {
+                    listener?.remove()
+                    listener = fireStoreRemoteDataSource.getRTStaffBy(it).addSnapshotListener { value, _ ->
+                        value?.data?.toStaffModel()?.let { staff ->
+                            launch {
+                                send(staff)
+                            }
                         }
                     }
-            }
+                }
+
+            awaitClose { listener?.remove() }
         }
     }
 
-    private fun listenCurrentStaff(id: String) {
-        currentStaffListenerRegistration?.remove()
-        currentStaffListenerRegistration = fireStoreRemoteDataSource.getRTStaffBy(id = id)
-            .addSnapshotListener { value, _ ->
-                val staff = value?.data?.toStaffModel()
-                _currentStaff.value = staff
-            }
+    override fun getRelatedStaffBy(projectIds: List<String>): Flow<List<StaffModel>> {
+        return callbackFlow {
+            val listener = fireStoreRemoteDataSource.getRTStavesBy(projectIds)
+                .addSnapshotListener { value, error ->
+                    launch {
+                        send(
+                            value?.documents
+                                ?.mapNotNull { it.data }
+                                ?.map { it.toStaffModel() }
+                                .orEmpty()
+                        )
+                    }
+                }
+
+            awaitClose{ listener.remove() }
+        }
     }
 
-    private fun listenProjects() {
-        projectListenerRegistration?.remove()
-        projectListenerRegistration = fireStoreRemoteDataSource.getRTAllProjects()
-            .addSnapshotListener { value, _ ->
-                _projects.value = value?.documents
-                    ?.mapNotNull { it.data }
-                    ?.map { it.toProjectModel() }
-                    .orEmpty()
-            }
+    override fun getLeaveRequestBy(staffIds: List<String>): Flow<List<LeaveRequestModel>> {
+        return callbackFlow {
+            val listener = fireStoreRemoteDataSource.getRTLeaveRequestBy(staffIds)
+                .addSnapshotListener { value, error ->
+                    launch {
+                        send(
+                            value
+                                ?.documents
+                                ?.map { document -> document.toLeaveRequestModel() }
+                                .orEmpty()
+                        )
+                    }
+                }
+            awaitClose { listener.remove() }
+        }
     }
 
-    private fun listenStaves() {
-        stavesListenerRegistration?.remove()
-        stavesListenerRegistration = fireStoreRemoteDataSource.getRTAllStaves()
-            .addSnapshotListener { value, _ ->
-                _staves.value = value?.documents
-                    ?.mapNotNull { it.data }
-                    ?.map { it.toStaffModel() }
-                    .orEmpty()
-            }
+    override fun getLeaveRequestBy(staffId: String): Flow<List<LeaveRequestModel>> {
+        return callbackFlow {
+            val listener = fireStoreRemoteDataSource.getRTLeaveRequestBy(staffId)
+                .addSnapshotListener { value, _ ->
+                    launch {
+                        send(
+                            value
+                                ?.documents
+                                ?.map { document -> document.toLeaveRequestModel() }
+                                .orEmpty()
+                        )
+                    }
+                }
+            awaitClose { listener.remove() }
+        }
     }
 
-    private fun listenRoles() {
-        rolesListenerRegistration?.remove()
-        rolesListenerRegistration = fireStoreRemoteDataSource.getRTAllRoles()
-            .addSnapshotListener { value, _ ->
-                _roles.value = value?.documents
-                    ?.mapNotNull { it.data }
-                    ?.map { it.toRoleModel() }
-                    .orEmpty()
-            }
+    override fun getAllUpcomingEvent(): Flow<List<EventModel>> {
+        return callbackFlow {
+            val listener = fireStoreRemoteDataSource.getRTAllUpcomingEvents()
+                .limit(10)
+                .addSnapshotListener { value, _ ->
+                    launch {
+                        send(
+                            value
+                                ?.documents
+                                ?.map { document -> document.toEventModel() }
+                                .orEmpty()
+                        )
+                    }
+                }
+            awaitClose{ listener.remove() }
+        }
     }
 
-    private fun listenLeaveTypes() {
-        leaveTypesListenerRegistration?.remove()
-        leaveTypesListenerRegistration = fireStoreRemoteDataSource.getRTAllLeaveTypes()
-            .addSnapshotListener { value, _ ->
-                _leaveTypes.value = value?.documents
-                    ?.mapNotNull { it.data }
-                    ?.map { it.toLeaveTypeModel() }
-                    .orEmpty()
-            }
+    override fun getAllLeaveTypes(): Flow<List<LeaveTypeModel>> {
+        return callbackFlow {
+            val listener = fireStoreRemoteDataSource.getRTAllLeaveTypes()
+                .addSnapshotListener { value, _ ->
+                    launch {
+                        send(
+                            value?.documents
+                                ?.mapNotNull { it.data }
+                                ?.map { it.toLeaveTypeModel() }
+                                .orEmpty()
+                        )
+                    }
+                }
+            awaitClose { listener.remove() }
+        }
     }
 
-    override fun onClear() {
-        initJob?.cancel()
-        removeAllListeners()
+    override fun getAllStaves(): Flow<List<StaffModel>> {
+        return callbackFlow {
+            val listener = fireStoreRemoteDataSource.getRTAllStaves()
+                .addSnapshotListener { value, _ ->
+                    launch {
+                        send(
+                            value?.documents
+                                ?.mapNotNull { it.data }
+                                ?.map { it.toStaffModel() }
+                                .orEmpty()
+                        )
+                    }
+                }
+            awaitClose{ listener.remove() }
+        }
     }
 
-    override fun removeAllListeners() {
-        currentStaffListenerRegistration?.remove()
-        projectListenerRegistration?.remove()
-        stavesListenerRegistration?.remove()
-        rolesListenerRegistration?.remove()
-        leaveTypesListenerRegistration?.remove()
-        relatedStavesListenerRegistration?.remove()
-        currentStaffLeaveBalanceListenerRegistration?.remove()
+    override fun getAllRoles(): Flow<List<RoleModel>> {
+        return callbackFlow {
+            val listener = fireStoreRemoteDataSource.getRTAllRoles()
+                .addSnapshotListener { value, _ ->
+                    launch {
+                        send(
+                            value?.documents
+                                ?.mapNotNull { it.data }
+                                ?.map { it.toRoleModel() }
+                                .orEmpty()
+                        )
+                    }
+                }
+
+            awaitClose{ listener.remove() }
+        }
+    }
+
+    override fun getAllProjects(): Flow<List<ProjectModel>> {
+        return callbackFlow {
+            val listener = fireStoreRemoteDataSource.getRTAllProjects()
+                .addSnapshotListener { value, _ ->
+                    launch {
+                        send(
+                            value?.documents
+                                ?.mapNotNull { it.data }
+                                ?.map { it.toProjectModel() }
+                                .orEmpty()
+                        )
+                    }
+                }
+
+            awaitClose{ listener.remove() }
+        }
+    }
+
+    override fun getLeaveBalanceBy(roleId: String): Flow<List<LeaveBalanceModel>> {
+        return callbackFlow {
+            val listener = fireStoreRemoteDataSource.getRTLeaveBalanceBy(roleId)
+                .addSnapshotListener { value, _ ->
+                    launch {
+                        send(
+                            value?.documents
+                                ?.mapNotNull { it.data }
+                                ?.map { it.toLeaveRequestModel() }
+                                .orEmpty()
+                        )
+                    }
+                }
+            awaitClose { listener.remove() }
+        }
     }
 }

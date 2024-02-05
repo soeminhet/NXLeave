@@ -35,8 +35,6 @@ interface FireStoreRepository {
     suspend fun addLeaveBalance(model: LeaveBalanceModel): Boolean
     suspend fun updateLeaveBalance(model: LeaveBalanceModel): Boolean
 
-    fun getLeaveRequestBy(staffId: String, onResult: (Result<List<LeaveRequestModel>>) -> Unit): ListenerRegistration
-    fun getLeaveRequestBy(staffIds: List<String>, onResult: (Result<List<LeaveRequestModel>>) -> Unit): ListenerRegistration
     suspend fun getLeaveRequestBy(staffIds: List<String>, startDate: OffsetDateTime, endDate: OffsetDateTime): List<LeaveRequestModel>
     suspend fun addLeaveRequest(model: LeaveRequestModel): Boolean
     suspend fun deleteLeaveRequest(id: String): Boolean
@@ -47,5 +45,4 @@ interface FireStoreRepository {
     suspend fun updateEvent(model: EventModel): Boolean
     suspend fun deleteEvent(id: String): Boolean
     suspend fun getAllUpcomingEvents(): List<EventModel>
-    fun getAllUpcomingEvents(onResult: (Result<List<EventModel>>) -> Unit): ListenerRegistration
 }

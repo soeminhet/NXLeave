@@ -6,7 +6,6 @@ import com.smh.nxleave.domain.mapper.toModel
 import com.smh.nxleave.domain.mapper.toUiModel
 import com.smh.nxleave.domain.model.LeaveBalanceModel
 import com.smh.nxleave.domain.repository.FireStoreRepository
-import com.smh.nxleave.domain.repository.RealTimeDataRepository
 import com.smh.nxleave.screen.model.LeaveBalanceUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +18,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LeaveBalanceViewModel @Inject constructor(
-    private val realTimeDataRepository: RealTimeDataRepository,
     private val fireStoreRepository: FireStoreRepository
 ) : ViewModel() {
 
@@ -35,15 +33,14 @@ class LeaveBalanceViewModel @Inject constructor(
     private fun fetchAllLeaveBalances() {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            val roles = realTimeDataRepository.roles.value
-            val leaveTypes = realTimeDataRepository.leaveTypes.value
+            val roles = fireStoreRepository.getAllRoles().filter { it.enable }
+            val leaveTypes = fireStoreRepository.getAllLeaveTypes().filter { it.enable }
             val leaveBalances = fireStoreRepository.getAllLeaveBalance()
 
             cacheExistLeaveBalances = leaveBalances
             val mapped = roles.associate { role ->
                 val filterLeaveBalances = leaveBalances.filter { it.roleId == role.id }
                 val list = leaveTypes
-                    .filter { it.enable }
                     .map { type ->
                         val existLeaveBalance =
                             filterLeaveBalances.firstOrNull { it.leaveTypeId == type.id }

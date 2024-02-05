@@ -7,14 +7,15 @@ import com.smh.nxleave.domain.mapper.toUiModels
 import com.smh.nxleave.domain.model.EventModel
 import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
-import com.smh.nxleave.domain.repository.RealTimeDataRepositoryV2
 import com.smh.nxleave.screen.model.LeaveRequestUiModel
 import com.smh.nxleave.utility.DATE_PATTERN_THREE
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -24,8 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val realTimeDataRepository: RealTimeDataRepository,
-    private val realTimeDataRepositoryV2: RealTimeDataRepositoryV2
+    private val realTimeDataRepository: RealTimeDataRepository
 ): ViewModel() {
 
     private var _uiState = MutableStateFlow(DashboardUiState())
@@ -41,7 +41,7 @@ class DashboardViewModel @Inject constructor(
 
     private fun fetchCurrentStaff() {
         viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepositoryV2.getCurrentStaff()
+            realTimeDataRepository.getCurrentStaff()
                 .collectLatest { currentStaff ->
                     _uiState.update {
                         it.copy(currentStaff = currentStaff)
@@ -52,7 +52,7 @@ class DashboardViewModel @Inject constructor(
     }
 
     private suspend fun fetchRelatedStaffIds(projectIds: List<String>){
-        realTimeDataRepositoryV2.getRelatedStaffBy(projectIds)
+        realTimeDataRepository.getRelatedStaffBy(projectIds)
             .map { it.map { staff -> staff.id } }
             .distinctUntilChanged()
             .collectLatest { relatedStaffIds ->
@@ -63,30 +63,31 @@ class DashboardViewModel @Inject constructor(
     }
 
     private suspend fun fetchLeaveRequest(relatedStaffIds: List<String>) {
-        realTimeDataRepositoryV2.getLeaveRequestBy(relatedStaffIds)
-            .collectLatest { leaveRequests ->
-                val leaveTypes = realTimeDataRepository.leaveTypes.value
-                val staves = realTimeDataRepository.staves.value
-                val roles = realTimeDataRepository.roles.value
-                val projects = realTimeDataRepository.projects.value
-                val leaveRequestUiModels = leaveRequests.toUiModels(
-                    roles = roles,
-                    staves = staves,
-                    leaveTypes = leaveTypes,
-                    projects = projects
-                )
+        combine(
+            realTimeDataRepository.getLeaveRequestBy(relatedStaffIds),
+            realTimeDataRepository.getAllLeaveTypes(),
+            realTimeDataRepository.getAllStaves(),
+            realTimeDataRepository.getAllRoles(),
+            realTimeDataRepository.getAllProjects()
+        ) { leaveRequests, leaveTypes, staves, roles, projects ->
+            val leaveRequestUiModels = leaveRequests.toUiModels(
+                roles = roles,
+                staves = staves,
+                leaveTypes = leaveTypes,
+                projects = projects
+            )
 
-                _uiState.update { uiState ->
-                    uiState.copy(
-                        leaveRequests = leaveRequestUiModels,
-                    )
-                }
+            _uiState.update { uiState ->
+                uiState.copy(
+                    leaveRequests = leaveRequestUiModels,
+                )
             }
+        }.collect()
     }
 
     private fun fetchUpcomingEvents() {
         viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepositoryV2.getAllUpcomingEvent()
+            realTimeDataRepository.getAllUpcomingEvent()
                 .collectLatest { events ->
                     _uiState.update { uiState ->
                         uiState.copy(

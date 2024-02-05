@@ -14,7 +14,6 @@ import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.domain.repository.AuthRepository
 import com.smh.nxleave.domain.repository.FireStoreRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
-import com.smh.nxleave.domain.repository.RealTimeDataRepositoryV2
 import com.smh.nxleave.screen.model.LeaveRequestModel
 import com.smh.nxleave.screen.model.LeaveRequestUiModel
 import com.smh.nxleave.screen.model.MyLeaveBalanceUiModel
@@ -40,7 +39,7 @@ import javax.inject.Inject
 class BalanceViewModel @Inject constructor(
     private val fireStoreRepository: FireStoreRepository,
     private val authRepository: AuthRepository,
-    private val realTimeDataRepositoryV2: RealTimeDataRepositoryV2,
+    private val realTimeDataRepository: RealTimeDataRepository,
 ): ViewModel() {
 
     private var _uiState = MutableStateFlow(BalanceUiState())
@@ -60,11 +59,11 @@ class BalanceViewModel @Inject constructor(
     private fun fetchLeaveRequest() {
         viewModelScope.launch(Dispatchers.IO) {
             combine(
-                realTimeDataRepositoryV2.getLeaveRequestBy(authRepository.cacheStaffId),
-                realTimeDataRepositoryV2.getAllLeaveTypes(),
-                realTimeDataRepositoryV2.getAllStaves(),
-                realTimeDataRepositoryV2.getAllRoles(),
-                realTimeDataRepositoryV2.getAllProjects(),
+                realTimeDataRepository.getLeaveRequestBy(authRepository.cacheStaffId),
+                realTimeDataRepository.getAllLeaveTypes(),
+                realTimeDataRepository.getAllStaves(),
+                realTimeDataRepository.getAllRoles(),
+                realTimeDataRepository.getAllProjects(),
                 fetchStaffBalance()
             ) { leaveRequests, leaveTypes, staves, roles, projects, balances ->
                 this@BalanceViewModel.roles = roles
@@ -109,10 +108,10 @@ class BalanceViewModel @Inject constructor(
 
     private fun fetchStaffBalance(): Flow<List<LeaveBalanceModel>> {
         return callbackFlow {
-            realTimeDataRepositoryV2.getCurrentStaff()
+            realTimeDataRepository.getCurrentStaff()
                 .collectLatest { staff ->
                     currentStaff = staff
-                    realTimeDataRepositoryV2.getLeaveBalanceBy(staff.roleId)
+                    realTimeDataRepository.getLeaveBalanceBy(staff.roleId)
                         .collectLatest { balances ->
                             send(balances)
                         }
@@ -174,7 +173,6 @@ class BalanceViewModel @Inject constructor(
 }
 
 data class BalanceUiState(
-    val loading: Boolean = false,
     val totalDays: Double = 0.0,
     val tookDays: Double = 0.0,
     val balances: List<LeaveBalanceModel> = emptyList(),

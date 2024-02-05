@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.smh.nxleave.domain.model.AccessLevel
 import com.smh.nxleave.domain.repository.AuthRepository
 import com.smh.nxleave.domain.repository.FireStoreRepository
-import com.smh.nxleave.domain.repository.RealTimeDataRepositoryV2
+import com.smh.nxleave.domain.repository.RealTimeDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val realTimeDataRepositoryV2: RealTimeDataRepositoryV2,
+    private val realTimeDataRepository: RealTimeDataRepository,
     private val fireStoreRepository: FireStoreRepository,
     private val authRepository: AuthRepository,
 ): ViewModel() {
@@ -30,7 +30,7 @@ class ProfileViewModel @Inject constructor(
 
     private fun fetchStaffInfo() {
         viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepositoryV2.getCurrentStaff()
+            realTimeDataRepository.getCurrentStaff()
                 .collectLatest { model ->
                     val role = fireStoreRepository.getRole(model.roleId)
                     _uiState.update {

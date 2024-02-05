@@ -17,9 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val realTimeDataRepository: RealTimeDataRepository,
+    realTimeDataRepository: RealTimeDataRepository
 ): ViewModel() {
-
     val isLogIn = authRepository.staffIdFlow
         .distinctUntilChanged()
         .map { it.isNotEmpty() }
@@ -29,25 +28,20 @@ class MainViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000)
         )
 
-    val isAccountEnable = realTimeDataRepository.currentStaff
+    val isAccountEnable = realTimeDataRepository.getCurrentStaff()
         .combine(isLogIn) { staff, login ->
-            if(login) staff?.enable ?: true
+            if(login) staff.enable
             else true
         }
 
-    val accessLevel = realTimeDataRepository.currentStaff
-        .combine(realTimeDataRepository.roles) { staff, roles ->
-            roles.firstOrNull { role -> role.id == staff?.roleId }?.accessLevel ?: AccessLevel.None()
+    val accessLevel = realTimeDataRepository.getCurrentStaff()
+        .combine(realTimeDataRepository.getAllRoles()) { staff, roles ->
+            roles.firstOrNull { role -> role.id == staff.roleId }?.accessLevel ?: AccessLevel.None()
         }
 
     fun onLogout() {
         viewModelScope.launch {
             authRepository.updateStaffId("")
         }
-    }
-
-    override fun onCleared() {
-        realTimeDataRepository.onClear()
-        super.onCleared()
     }
 }

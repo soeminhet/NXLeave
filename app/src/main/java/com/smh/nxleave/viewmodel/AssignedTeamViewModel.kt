@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,13 +23,13 @@ class AssignedTeamViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepository.currentStaff
-                .combine(realTimeDataRepository.projects) { staff, projects ->
-                    staff?.currentProjectIds?.mapNotNull {
+            realTimeDataRepository.getCurrentStaff()
+                .combine(realTimeDataRepository.getAllProjects()) { staff, projects ->
+                    staff.currentProjectIds.mapNotNull {
                         projects.firstOrNull { project ->
                              project.id == it
                         }?.name
-                    }.orEmpty()
+                    }
                 }
                 .collectLatest { model ->
                     _uiState.update {

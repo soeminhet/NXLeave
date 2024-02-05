@@ -46,8 +46,8 @@ interface FireStoreRemoteDataSource {
     suspend fun updateLeaveBalance(model: LeaveBalanceModel): Boolean
     fun getRTLeaveBalanceBy(roleId: String): Query
 
-    fun getLeaveRequestBy(staffId: String, onResult: (Result<QuerySnapshot?>) -> Unit): ListenerRegistration
-    fun getLeaveRequestBy(staffIds: List<String>, onResult: (Result<QuerySnapshot?>) -> Unit): ListenerRegistration
+    fun getRTLeaveRequestBy(staffId: String): Query
+    fun getRTLeaveRequestBy(staffIds: List<String>): Query
     suspend fun getLeaveRequestBy(staffIds: List<String>, startDate: OffsetDateTime, endDate: OffsetDateTime): List<DocumentSnapshot>
     suspend fun addLeaveRequest(model: LeaveRequestModel): Boolean
     suspend fun deleteLeaveRequest(id: String): Boolean
@@ -58,5 +58,5 @@ interface FireStoreRemoteDataSource {
     suspend fun updateEvent(model: EventModel): Boolean
     suspend fun deleteEvent(id: String): Boolean
     suspend fun getAllUpcomingEvents(): List<DocumentSnapshot>
-    fun getAllUpcomingEvents(onResult: (Result<QuerySnapshot?>) -> Unit): ListenerRegistration
+    fun getRTAllUpcomingEvents(): Query
 }

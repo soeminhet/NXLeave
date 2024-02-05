@@ -8,20 +8,8 @@ import com.smh.nxleave.domain.model.RoleModel
 import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.screen.model.LeaveRequestModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 
 interface RealTimeDataRepository {
-    val currentStaff: StateFlow<StaffModel?>
-    val projects: StateFlow<List<ProjectModel>>
-    val staves: StateFlow<List<StaffModel>>
-    val roles: StateFlow<List<RoleModel>>
-    val leaveTypes: StateFlow<List<LeaveTypeModel>>
-
-    fun removeAllListeners()
-    fun onClear()
-}
-
-interface RealTimeDataRepositoryV2 {
     fun getCurrentStaff(): Flow<StaffModel>
     fun getRelatedStaffBy(projectIds: List<String>): Flow<List<StaffModel>>
     fun getLeaveRequestBy(staffIds: List<String>): Flow<List<LeaveRequestModel>>

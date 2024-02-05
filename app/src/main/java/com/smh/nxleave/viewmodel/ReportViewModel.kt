@@ -25,6 +25,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.apache.poi.ss.usermodel.FillPatternType
@@ -39,36 +41,46 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReportViewModel @Inject constructor(
-    private val realTimeDataRepository: RealTimeDataRepository,
     private val fireStoreRepository: FireStoreRepository,
+    private val realTimeDataRepository: RealTimeDataRepository
 ): ViewModel() {
 
     private val _uiState = MutableStateFlow(ReportUiState())
     val uiState = _uiState.asStateFlow()
 
     private var cacheLeaveRequestModels = emptyList<LeaveRequestModel>()
+    private var isFirstTime: Boolean = true
 
     init {
-        with(realTimeDataRepository) {
-            val currentMonth = getCurrentMonthStartAndEndOffsetDate()
-            _uiState.update {
-                it.copy(
-                    staves = staves.value.add(value = StaffModel.allStaff),
-                    roles = roles.value.add(value = RoleModel.allRole),
-                    projects = projects.value.add(value = ProjectModel.allProject),
-                    selectedStartDate = currentMonth.first,
-                    selectedEndDate = currentMonth.second,
-                    leaveTypes = leaveTypes.value,
-                )
-            }
-            onFilterApply(
-                staff = StaffModel.allStaff,
-                role = RoleModel.allRole,
-                project = ProjectModel.allProject,
-                startDate = currentMonth.first,
-                endDate = currentMonth.second
-            )
+        viewModelScope.launch(Dispatchers.IO) {
+            combine(
+                realTimeDataRepository.getAllStaves(),
+                realTimeDataRepository.getAllRoles(),
+                realTimeDataRepository.getAllProjects(),
+                realTimeDataRepository.getAllLeaveTypes()
+            ) { staves, roles, projects, leaveTypes ->
+                _uiState.update {
+                    it.copy(
+                        staves = staves.add(value = StaffModel.allStaff),
+                        roles = roles.add(value = RoleModel.allRole),
+                        projects = projects.add(value = ProjectModel.allProject),
+                        leaveTypes = leaveTypes,
+                    )
+                }
+
+                if (isFirstTime && staves.isNotEmpty()) {
+                    isFirstTime = false
+                    onFilterApply(
+                        staff = StaffModel.allStaff,
+                        role = RoleModel.allRole,
+                        project = ProjectModel.allProject,
+                        startDate = uiState.value.selectedStartDate,
+                        endDate = uiState.value.selectedEndDate
+                    )
+                }
+            }.collect()
         }
+
     }
 
     fun onFilterApply(staff: StaffModel, role: RoleModel, project: ProjectModel, startDate: OffsetDateTime, endDate: OffsetDateTime) {

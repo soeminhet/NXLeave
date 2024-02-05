@@ -1,12 +1,9 @@
 package com.smh.nxleave.data.remote.firestore
 
-import android.util.Log
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.smh.nxleave.data.mapper.toFireStoreMap
@@ -218,36 +215,18 @@ class FireStoreRemoteDataSourceImpl @Inject constructor(): FireStoreRemoteDataSo
 
     override fun getRTLeaveBalanceBy(roleId: String): Query = leaveBalanceCollection.whereEqualTo("roleId", roleId)
 
-    override fun getLeaveRequestBy(staffId: String, onResult: (Result<QuerySnapshot?>) -> Unit): ListenerRegistration {
+    override fun getRTLeaveRequestBy(staffId: String): Query {
         return leaveRequestCollection
             .whereEqualTo("staffId", staffId)
             .orderBy("leaveApplyDate", Query.Direction.DESCENDING)
-            .addSnapshotListener { value, error ->
-                if (error != null) {
-                    Log.i("LEAVE_REQUEST", error.toString())
-                    onResult(Result.failure(error))
-                }
-                onResult(Result.success(value))
-            }
     }
 
-    override fun getLeaveRequestBy(
-        staffIds: List<String>,
-        onResult: (Result<QuerySnapshot?>) -> Unit
-    ): ListenerRegistration {
+    override fun getRTLeaveRequestBy(staffIds: List<String>): Query {
         return leaveRequestCollection
             .whereIn("staffId", staffIds)
             .orderBy("endDate")
             .orderBy("leaveApplyDate", Query.Direction.DESCENDING)
             .whereGreaterThanOrEqualTo("endDate", getTodayStartTimeStamp())
-            .addSnapshotListener { value, error ->
-                if (error != null) {
-                    Log.i("LEAVE_REQUEST", error.toString())
-                    onResult(Result.failure(error))
-                }
-                Log.i("LEAVE_REQUEST", value.toString())
-                onResult(Result.success(value))
-            }
     }
 
     override suspend fun getLeaveRequestBy(
@@ -351,17 +330,10 @@ class FireStoreRemoteDataSourceImpl @Inject constructor(): FireStoreRemoteDataSo
         }
     }
 
-    override fun getAllUpcomingEvents(onResult: (Result<QuerySnapshot?>) -> Unit): ListenerRegistration {
+    override fun getRTAllUpcomingEvents(): Query {
         return eventCollection
             .orderBy("date")
             .startAt(getTodayStartTimeStamp())
-            .limit(10)
-            .addSnapshotListener { value, error ->
-                if (error != null) {
-                    onResult(Result.failure(error))
-                }
-                onResult(Result.success(value))
-            }
     }
 }
 

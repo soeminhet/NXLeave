@@ -2,7 +2,6 @@ package com.smh.nxleave.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.firestore.ListenerRegistration
 import com.smh.nxleave.design.component.LeaveStatus
 import com.smh.nxleave.domain.mapper.toUiModels
 import com.smh.nxleave.domain.model.AccessLevel
@@ -10,7 +9,6 @@ import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.domain.repository.AuthRepository
 import com.smh.nxleave.domain.repository.FireStoreRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
-import com.smh.nxleave.domain.repository.RealTimeDataRepositoryV2
 import com.smh.nxleave.screen.model.LeaveRequestUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -20,9 +18,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,7 +27,7 @@ import javax.inject.Inject
 class LeaveApproveViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val fireStoreRepository: FireStoreRepository,
-    private val realTimeDataRepositoryV2: RealTimeDataRepositoryV2
+    private val realTimeDataRepository: RealTimeDataRepository
 ): ViewModel() {
 
     private var _uiState = MutableStateFlow(LeaveApproveUiState())
@@ -53,7 +49,7 @@ class LeaveApproveViewModel @Inject constructor(
 
     private fun fetchCurrentStaff() {
         viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepositoryV2.getCurrentStaff()
+            realTimeDataRepository.getCurrentStaff()
                 .collectLatest { currentStaff ->
                     _uiState.update {
                         it.copy(currentStaff = currentStaff)
@@ -67,7 +63,7 @@ class LeaveApproveViewModel @Inject constructor(
         val adminRoles = fireStoreRepository.getAllRoles().filter { it.accessLevel == AccessLevel.All() }
         val isAdmin = adminRoles.any { it.id == currentStaff.roleId }
 
-        realTimeDataRepositoryV2.getRelatedStaffBy(currentStaff.currentProjectIds)
+        realTimeDataRepository.getRelatedStaffBy(currentStaff.currentProjectIds)
             .map { staves ->
                 if (isAdmin) staves
                 else staves.filterNot { staff -> adminRoles.any { it.id == staff.roleId } }
@@ -83,11 +79,11 @@ class LeaveApproveViewModel @Inject constructor(
 
     private suspend fun fetchLeaveRequest(relatedStaffIds: List<String>) {
         combine(
-            realTimeDataRepositoryV2.getLeaveRequestBy(relatedStaffIds),
-            realTimeDataRepositoryV2.getAllLeaveTypes(),
-            realTimeDataRepositoryV2.getAllStaves(),
-            realTimeDataRepositoryV2.getAllRoles(),
-            realTimeDataRepositoryV2.getAllProjects()
+            realTimeDataRepository.getLeaveRequestBy(relatedStaffIds),
+            realTimeDataRepository.getAllLeaveTypes(),
+            realTimeDataRepository.getAllStaves(),
+            realTimeDataRepository.getAllRoles(),
+            realTimeDataRepository.getAllProjects()
         ) { leaveRequests, leaveTypes, staves, roles, projects ->
             val leaveRequestUiModels = leaveRequests.toUiModels(
                 roles = roles,

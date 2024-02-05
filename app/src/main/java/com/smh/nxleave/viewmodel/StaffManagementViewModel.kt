@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -55,18 +55,28 @@ class StaffManagementViewModel @Inject constructor(
     }
 
     private fun fetchRoles() {
-        _uiState.update {
-            it.copy(
-                enableRoles = realTimeDataRepository.roles.value.filter { it.enable }
-            )
+        viewModelScope.launch(Dispatchers.IO) {
+            realTimeDataRepository.getAllRoles()
+                .collectLatest { roles ->
+                    _uiState.update { state ->
+                        state.copy(
+                            enableRoles = roles.filter { it.enable }
+                        )
+                    }
+                }
         }
     }
 
     private fun fetchProjects() {
-        _uiState.update {
-            it.copy(
-                enableProjects = realTimeDataRepository.projects.value.filter { it.enable }
-            )
+        viewModelScope.launch(Dispatchers.IO) {
+            realTimeDataRepository.getAllProjects()
+                .collectLatest { projects ->
+                    _uiState.update { state ->
+                        state.copy(
+                            enableProjects = projects.filter { it.enable }
+                        )
+                    }
+                }
         }
     }
 

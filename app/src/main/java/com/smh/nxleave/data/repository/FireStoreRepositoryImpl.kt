@@ -176,36 +176,6 @@ class FireStoreRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getLeaveRequestBy(
-        staffId: String,
-        onResult: (Result<List<LeaveRequestModel>>) -> Unit
-    ): ListenerRegistration {
-        return fireStoreRemoteDataSource.getLeaveRequestBy(staffId) {
-            it.map { snapshot ->
-                snapshot?.documents?.map { document -> document.toLeaveRequestModel() }.orEmpty()
-            }.onSuccess {
-                onResult(Result.success(it))
-            }.onFailure {
-                onResult(Result.failure(it))
-            }
-        }
-    }
-
-    override fun getLeaveRequestBy(
-        staffIds: List<String>,
-        onResult: (Result<List<LeaveRequestModel>>) -> Unit
-    ): ListenerRegistration {
-        return fireStoreRemoteDataSource.getLeaveRequestBy(staffIds) {
-            it.map { snapshot ->
-                snapshot?.documents?.map { document -> document.toLeaveRequestModel() }.orEmpty()
-            }.onSuccess {
-                onResult(Result.success(it))
-            }.onFailure {
-                onResult(Result.failure(it))
-            }
-        }
-    }
-
     override suspend fun getLeaveRequestBy(
         staffIds: List<String>,
         startDate: OffsetDateTime,
@@ -215,10 +185,7 @@ class FireStoreRepositoryImpl @Inject constructor(
             staffIds = staffIds,
             startDate = startDate,
             endDate = endDate
-        )
-            .map {
-                it.toLeaveRequestModel()
-            }
+        ).map { it.toLeaveRequestModel() }
     }
 
     override suspend fun addLeaveRequest(model: LeaveRequestModel): Boolean {
@@ -280,18 +247,6 @@ class FireStoreRepositoryImpl @Inject constructor(
                 .map { it.toEventModel() }
         } catch (e: Exception) {
             emptyList()
-        }
-    }
-
-    override fun getAllUpcomingEvents(onResult: (Result<List<EventModel>>) -> Unit): ListenerRegistration {
-        return fireStoreRemoteDataSource.getAllUpcomingEvents {
-            it.map { snapshot ->
-                snapshot?.documents?.map { document -> document.toEventModel() }.orEmpty()
-            }.onSuccess {
-                onResult(Result.success(it))
-            }.onFailure {
-                onResult(Result.failure(it))
-            }
         }
     }
 }

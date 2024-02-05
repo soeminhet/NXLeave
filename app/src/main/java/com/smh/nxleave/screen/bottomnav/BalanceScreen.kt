@@ -5,7 +5,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -26,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,11 +45,7 @@ import com.smh.nxleave.design.component.LeaveType
 import com.smh.nxleave.design.component.NXAlertDialog
 import com.smh.nxleave.design.component.NXCircleProgress
 import com.smh.nxleave.design.component.NXFloatingButton
-import com.smh.nxleave.design.component.NXLoading
 import com.smh.nxleave.design.component.ShowLeaveItem
-import com.smh.nxleave.design.pullrefresh.PullRefreshIndicator
-import com.smh.nxleave.design.pullrefresh.pullRefresh
-import com.smh.nxleave.design.pullrefresh.rememberPullRefreshState
 import com.smh.nxleave.design.sheet.LeaveRequestSheet
 import com.smh.nxleave.design.sheet.MyLeaveBalanceSheet
 import com.smh.nxleave.domain.model.LeaveTypeModel
@@ -87,15 +81,12 @@ fun BalanceScreen(
         )
     }
 
-    if (uiState.loading) NXLoading()
-
     BalanceContent(
         uiState = uiState,
         userEvent = {
             when(it) {
                 is BalanceUserEvent.OnLeaveRequest -> viewModel.submitLeaveRequest(it.model)
                 is BalanceUserEvent.OnDeleteRequest -> viewModel.deleteLeaveRequest(it.model)
-                BalanceUserEvent.OnRefresh -> {}
             }
         }
     )
@@ -107,10 +98,6 @@ private fun BalanceContent(
     uiState: BalanceUiState,
     userEvent: (BalanceUserEvent) -> Unit
 ) {
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = uiState.loading,
-        onRefresh = { userEvent(BalanceUserEvent.OnRefresh) }
-    )
     var showMyLeaveBalances by remember { mutableStateOf(false) }
     var showRequestLeaveSheet by remember { mutableStateOf(false) }
     var cancelPendingLeaveRequestDialogData by remember { mutableStateOf<LeaveRequestUiModel?>(null) }
@@ -157,8 +144,7 @@ private fun BalanceContent(
         modifier = Modifier
             .statusBarsPadding()
             .padding(LocalEntryPadding.current)
-            .fillMaxSize()
-            .pullRefresh(state = pullRefreshState),
+            .fillMaxSize(),
     ) {
         LazyColumn(
             modifier = Modifier
@@ -267,23 +253,12 @@ private fun BalanceContent(
                 )
             }
         }
-
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            PullRefreshIndicator(
-                refreshing = uiState.loading,
-                state = pullRefreshState,
-            )
-        }
     }
 }
 
 sealed interface BalanceUserEvent {
     data class OnLeaveRequest(val model: LeaveRequestModel): BalanceUserEvent
     data class OnDeleteRequest(val model: LeaveRequestUiModel): BalanceUserEvent
-    data object OnRefresh: BalanceUserEvent
 }
 
 @Preview(showBackground = true)

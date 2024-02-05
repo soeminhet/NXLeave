@@ -2,6 +2,7 @@ package com.smh.nxleave.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.domain.repository.FireStoreRepository
 import com.smh.nxleave.domain.repository.RealTimeDataRepository
 import com.smh.nxleave.domain.repository.StorageRepository
@@ -32,18 +33,19 @@ class EditProfileViewModel @Inject constructor(
     private val _uiEvent = MutableSharedFlow<EditProfileUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
+    private var cacheStaff: StaffModel? = null
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            realTimeDataRepository.currentStaff
+            realTimeDataRepository.getCurrentStaff()
                 .collectLatest { model ->
-                    if (model != null) {
-                        _uiState.update {
-                            it.copy(
-                                photo = model.photo,
-                                name = model.name,
-                                phoneNumber = model.phoneNumber
-                            )
-                        }
+                    cacheStaff = model
+                    _uiState.update {
+                        it.copy(
+                            photo = model.photo,
+                            name = model.name,
+                            phoneNumber = model.phoneNumber
+                        )
                     }
                 }
         }
@@ -72,17 +74,14 @@ class EditProfileViewModel @Inject constructor(
                 if (profileImageFile == null) ""
                 else { storageRepository.uploadImage(profileImageFile!!) }
             }.await()
-            val updatedModel = realTimeDataRepository.currentStaff.value!!.copy(
+            val updatedModel = cacheStaff!!.copy(
                 photo = photoURL.ifBlank { uiState.value.photo },
                 name = uiState.value.name,
                 phoneNumber = uiState.value.phoneNumber
             )
             val success = fireStoreRepository.updateStaff(updatedModel)
-            if (success) {
-                _uiEvent.emit(EditProfileUiEvent.SubmitSuccess)
-            } else {
-                _uiEvent.emit(EditProfileUiEvent.SubmitError)
-            }
+            if (success) _uiEvent.emit(EditProfileUiEvent.SubmitSuccess)
+            else _uiEvent.emit(EditProfileUiEvent.SubmitError)
             setLoading(false)
         }
     }

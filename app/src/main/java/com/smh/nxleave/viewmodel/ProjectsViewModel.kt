@@ -4,9 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smh.nxleave.domain.model.AccessLevel
 import com.smh.nxleave.domain.model.ProjectModel
-import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.domain.repository.FireStoreRepository
-import com.smh.nxleave.domain.repository.RealTimeDataRepository
 import com.smh.nxleave.utility.removeWhiteSpaces
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +18,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProjectsViewModel @Inject constructor(
-    private val realTimeDataRepository: RealTimeDataRepository,
     private val fireStoreRepository: FireStoreRepository
 ): ViewModel() {
     private val _uiState = MutableStateFlow(ProjectsUiState())
@@ -54,10 +51,8 @@ class ProjectsViewModel @Inject constructor(
                 setLoading(false)
                 return@launch
             }
-            val adminRoles = realTimeDataRepository.roles.value.filter { it.accessLevel == AccessLevel.All() }
-            val admins = realTimeDataRepository.staves.value.filter {
-                adminRoles.any { role -> role.id == it.roleId}
-            }
+            val adminRoles = fireStoreRepository.getAllRoles().filter { it.accessLevel == AccessLevel.All() }
+            val admins = fireStoreRepository.getAllStaff().filter { staff -> adminRoles.any{ role -> role.id == staff.roleId } }
             val result = fireStoreRepository.addProject(model, admins)
             if (result) fetchProjects()
             else setLoading(false)
