@@ -83,12 +83,12 @@ class StaffManagementViewModel @Inject constructor(
     fun mangeAccount(model: StaffModel, password: String) {
         setLoading(true)
         viewModelScope.launch {
-            if (checkExist(model.name)) {
-                _uiEvent.emit(StaffManagementUiEvent.AccountExist)
-                setLoading(false)
-                return@launch
-            }
             if (password.isNotBlank()) {
+                if (checkExist(model.name)) {
+                    _uiEvent.emit(StaffManagementUiEvent.AccountExist)
+                    setLoading(false)
+                    return@launch
+                }
                 viewModelScope.launch(Dispatchers.IO) {
                     authRepository.singUp(model.email, password) {
                         it
@@ -104,6 +104,13 @@ class StaffManagementViewModel @Inject constructor(
                     }
                 }
             } else {
+                val origin = uiState.value.staves.first{ it.id == model.id }
+                val isNameChange = !origin.name.removeWhiteSpaces().equals(model.name.removeWhiteSpaces(), ignoreCase = true)
+                if (isNameChange && checkExist(model.name)) {
+                    _uiEvent.emit(StaffManagementUiEvent.AccountExist)
+                    setLoading(false)
+                    return@launch
+                }
                 updateStaff(model)
             }
         }

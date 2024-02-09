@@ -52,6 +52,7 @@ class DashboardViewModel @Inject constructor(
     }
 
     private suspend fun fetchRelatedStaffIds(projectIds: List<String>){
+        if (projectIds.isEmpty()) return
         realTimeDataRepository.getRelatedStaffBy(projectIds)
             .map { it.map { staff -> staff.id } }
             .distinctUntilChanged()

@@ -33,10 +33,10 @@ class MainViewModel @Inject constructor(
             if(login) staff.enable
             else true
         }
-
     val accessLevel = realTimeDataRepository.getCurrentStaff()
         .combine(realTimeDataRepository.getAllRoles()) { staff, roles ->
-            roles.firstOrNull { role -> role.id == staff.roleId }?.accessLevel ?: AccessLevel.None()
+            val first = roles.firstOrNull { role -> role.id == staff.roleId }?.accessLevel
+            first ?: AccessLevel.None()
         }
 
     fun onLogout() {

@@ -88,6 +88,7 @@ class OnboardingViewModel @Inject constructor(
             )
             if (success) {
                 setLoading(false)
+                authRepository.updateStaffId(value = auth.id)
                 _uiEvent.emit(OnboardingUiEvent.GetStartSuccess)
             } else {
                 setLoading(false)

@@ -3,19 +3,15 @@ package com.smh.nxleave.design.sheet
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,10 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.smh.nxleave.design.component.NXOutlinedTextField
 import com.smh.nxleave.design.component.SheetLip
-import com.smh.nxleave.design.component.modifier.noRippleClick
-import com.smh.nxleave.domain.model.EventModel
 import com.smh.nxleave.domain.model.ProjectModel
-import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
 import com.smh.nxleave.ui.theme.spacing
 

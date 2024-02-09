@@ -60,6 +60,8 @@ class LeaveApproveViewModel @Inject constructor(
     }
 
     private suspend fun fetchRelatedStaffIds(currentStaff: StaffModel){
+        if (currentStaff.currentProjectIds.isEmpty()) return
+
         val adminRoles = fireStoreRepository.getAllRoles().filter { it.accessLevel == AccessLevel.All() }
         val isAdmin = adminRoles.any { it.id == currentStaff.roleId }
 

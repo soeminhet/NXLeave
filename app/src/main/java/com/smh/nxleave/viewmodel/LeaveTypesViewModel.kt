@@ -33,7 +33,7 @@ class LeaveTypesViewModel @Inject constructor(
     private fun fetchLeaveTypes() {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            val models = fireStoreRepository.getAllLeaveTypes()
+            val models = fireStoreRepository.getAllLeaveTypes().sortedBy { it.name }
             _uiState.update {
                 it.copy(
                     leaveTypes = models
@@ -60,7 +60,9 @@ class LeaveTypesViewModel @Inject constructor(
     fun updateLeaveType(model: LeaveTypeModel) {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            if (checkExist(model.name)) {
+            val origin = uiState.value.leaveTypes.first{ it.id == model.id }
+            val isNameChange = !origin.name.removeWhiteSpaces().equals(model.name.removeWhiteSpaces(), ignoreCase = true)
+            if (isNameChange && checkExist(model.name)) {
                 _uiEvent.emit(LeaveTypeUiEvent.LeaveTypeExist)
                 setLoading(false)
                 return@launch

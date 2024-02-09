@@ -62,7 +62,9 @@ class EventManagementViewModel @Inject constructor(
     fun updateEvent(model: EventModel) {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            if (checkExist(model.name)) {
+            val origin = uiState.value.events.first{ it.id == model.id }
+            val isNameChange = !origin.name.removeWhiteSpaces().equals(model.name.removeWhiteSpaces(), ignoreCase = true)
+            if (isNameChange && checkExist(model.name)) {
                 _uiEvent.emit(EventManagementUiEvent.EventExist)
                 setLoading(false)
                 return@launch

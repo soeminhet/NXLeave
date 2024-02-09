@@ -32,7 +32,7 @@ class RolesViewModel @Inject constructor(
     private fun fetchRoles() {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            val models = fireStoreRepository.getAllRoles()
+            val models = fireStoreRepository.getAllRoles().sortedBy { it.name }
             _uiState.update {
                 it.copy(
                     roles = models
@@ -59,7 +59,9 @@ class RolesViewModel @Inject constructor(
     fun updateRole(model: RoleModel) {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            if (checkExist(model.name)) {
+            val origin = uiState.value.roles.first{ it.id == model.id }
+            val isNameChange = !origin.name.removeWhiteSpaces().equals(model.name.removeWhiteSpaces(), ignoreCase = true)
+            if (isNameChange && checkExist(model.name)) {
                 _uiEvent.emit(RoleUiEvent.RoleExist)
                 setLoading(false)
                 return@launch

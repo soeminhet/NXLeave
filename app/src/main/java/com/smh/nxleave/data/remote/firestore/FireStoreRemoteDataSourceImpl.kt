@@ -105,7 +105,7 @@ class FireStoreRemoteDataSourceImpl @Inject constructor(): FireStoreRemoteDataSo
     override suspend fun addRole(model: RoleModel): Boolean {
         return suspendCancellableCoroutine { continuation ->
             val document = roleCollection.document()
-            document.set(model.copy(id = document.id))
+            document.set(model.copy(id = document.id).toFireStoreMap())
                 .addContinuationBooleanListener(continuation)
         }
     }

@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,11 +27,9 @@ import com.smh.nxleave.design.component.ProjectItem
 import com.smh.nxleave.design.sheet.ProjectManagementSheet
 import com.smh.nxleave.domain.model.ProjectModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
-import com.smh.nxleave.ui.theme.spacing
 import com.smh.nxleave.viewmodel.ProjectsUiEvent
 import com.smh.nxleave.viewmodel.ProjectsUiState
 import com.smh.nxleave.viewmodel.ProjectsViewModel
-import com.smh.nxleave.viewmodel.RoleUiEvent
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -101,7 +98,7 @@ private fun ProjectsContent(
         ProjectManagementSheet(
             model = model,
             onSubmit = {
-                userEvent(ProjectsUserEvent.OnUpdateProject(model))
+                userEvent(ProjectsUserEvent.OnUpdateProject(it))
                 showEditSheet = null
             },
             onDismissRequest = { showEditSheet = null }

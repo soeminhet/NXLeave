@@ -62,7 +62,9 @@ class ProjectsViewModel @Inject constructor(
     fun updateProject(model: ProjectModel) {
         setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
-            if (checkExist(model.name)) {
+            val origin = uiState.value.projects.first{ it.id == model.id }
+            val isNameChange = !origin.name.removeWhiteSpaces().equals(model.name.removeWhiteSpaces(), ignoreCase = true)
+            if (isNameChange && checkExist(model.name)) {
                 _uiEvent.emit(ProjectsUiEvent.ProjectExist)
                 setLoading(false)
                 return@launch
