@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
             }
 
             val isLogin by viewModel.isLogIn.collectAsStateWithLifecycle()
-            val isAccountEnable by viewModel.isAccountEnable.collectAsStateWithLifecycle(false)
+            val isAccountEnable by viewModel.isAccountEnable.collectAsStateWithLifecycle(true)
             val accessLevel by viewModel.accessLevel.collectAsStateWithLifecycle(AccessLevel.None())
             val startRoute = remember {
                 derivedStateOf {
