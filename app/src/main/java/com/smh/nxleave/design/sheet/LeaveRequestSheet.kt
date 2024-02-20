@@ -206,6 +206,7 @@ private fun LeaveRequestContent(
                 onClick = {
                     val duration = if (isHalfDayLeave) 0.5
                     else (Duration.between(startDate, endDate).toDays() + 1).toDouble()
+
                     val leaveEndDate = if(isHalfDayLeave) startDate else endDate!!
                     val requestModel = LeaveRequestModel(
                         id = "",
@@ -219,7 +220,7 @@ private fun LeaveRequestContent(
                         leaveApplyDate = OffsetDateTime.now(),
                         leaveApprovedDate = null,
                         leaveRejectedDate = null,
-                        period = selectedPeriod?.name,
+                        period = if(isHalfDayLeave) selectedPeriod?.name else null,
                         approverId = ""
                     )
                     onSubmit(requestModel)
