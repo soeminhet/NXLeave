@@ -501,7 +501,8 @@ private fun ProfileContentPreview() {
         ProfileContent(
             uiState = ProfileUiState(
                 name = "SoeMinHtet",
-                roleName = "Android Developer"
+                roleName = "Android Developer",
+                showManagement = true
             ),
             userEvent = {},
             navigationEvent = {}

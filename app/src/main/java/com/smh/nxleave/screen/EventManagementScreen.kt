@@ -25,6 +25,9 @@ import com.smh.nxleave.design.component.NXBackButton
 import com.smh.nxleave.design.component.NXFloatingButton
 import com.smh.nxleave.design.component.NXLoading
 import com.smh.nxleave.design.sheet.EventManagementSheet
+import com.smh.nxleave.design.sheet.Option
+import com.smh.nxleave.design.sheet.OptionsContent
+import com.smh.nxleave.design.sheet.SheetPreview
 import com.smh.nxleave.domain.model.EventModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
 import com.smh.nxleave.ui.theme.spacing
@@ -33,6 +36,8 @@ import com.smh.nxleave.viewmodel.EventManagementUiState
 import com.smh.nxleave.viewmodel.EventManagementViewModel
 import com.smh.nxleave.viewmodel.RoleUiEvent
 import kotlinx.coroutines.flow.collectLatest
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 @Composable
 fun EventManagementScreen(
@@ -164,9 +169,26 @@ sealed interface EventManagementUserEvent {
 @Composable
 private fun EventManagementPreview() {
     NXLeaveTheme {
-        EventManagementContent(
-            uiState = EventManagementUiState(),
-            userEvent = {}
+        SheetPreview(
+            content = {
+                EventManagementContent(
+                    uiState = EventManagementUiState()
+                        .copy(
+                            events = listOf(
+                                EventModel("1", "Union Day", OffsetDateTime.of(2024, 2, 12, 0, 0, 0, 0, ZoneOffset.UTC)),
+                                EventModel("2", "Thingyan", OffsetDateTime.of(2024, 4, 14, 0, 0, 0, 0, ZoneOffset.UTC)),
+                            )
+                        ),
+                    userEvent = {}
+                )
+            },
+            sheet = {
+                OptionsContent(
+                    options = listOf(Option.EDIT, Option.DELETE),
+                    onClick = {},
+                    onCancel = {}
+                )
+            }
         )
     }
 }

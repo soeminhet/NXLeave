@@ -25,7 +25,11 @@ import com.smh.nxleave.design.component.NXBackButton
 import com.smh.nxleave.design.component.NXFloatingButton
 import com.smh.nxleave.design.component.NXLoading
 import com.smh.nxleave.design.component.StaffManagementItem
+import com.smh.nxleave.design.sheet.ManageStaffContent
 import com.smh.nxleave.design.sheet.ManageStaffSheet
+import com.smh.nxleave.design.sheet.Option
+import com.smh.nxleave.design.sheet.OptionsContent
+import com.smh.nxleave.design.sheet.SheetPreview
 import com.smh.nxleave.domain.model.StaffModel
 import com.smh.nxleave.screen.model.StaffProfileUiModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
@@ -171,9 +175,26 @@ sealed interface StaffManagementUserEvent {
 @Composable
 private fun StaffManagementPreview() {
     NXLeaveTheme {
-        StaffManagementContent(
-            uiState = StaffManagementUiState(),
-            userEvent = {}
+        SheetPreview(
+            content = {
+                StaffManagementContent(
+                    uiState = StaffManagementUiState(
+                        staves = listOf(
+                            StaffProfileUiModel("1", "", "Admin", "admin@nxleave.co", "", "", "", emptyList(), true),
+                            StaffProfileUiModel("2", "", "Staff One", "staffone@nxleave.co", "", "", "", emptyList(), true),
+                            StaffProfileUiModel("3", "", "PM One", "pmone@nxleave.co", "", "", "", emptyList(), true)
+                        )
+                    ),
+                    userEvent = {}
+                )
+            },
+            sheet = {
+                OptionsContent(
+                    options = listOf(Option.EDIT, Option.DISABLE),
+                    onCancel = {},
+                    onClick = {}
+                )
+            }
         )
     }
 }

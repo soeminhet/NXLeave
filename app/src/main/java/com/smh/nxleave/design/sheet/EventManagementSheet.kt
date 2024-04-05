@@ -1,5 +1,6 @@
 package com.smh.nxleave.design.sheet
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -60,7 +61,7 @@ fun EventManagementSheet(
 }
 
 @Composable
-private fun EventManagementContent(
+internal fun EventManagementContent(
     model: EventModel?,
     onSubmit: (EventModel) -> Unit,
 ) {
@@ -92,6 +93,7 @@ private fun EventManagementContent(
         modifier = Modifier
             .navigationBarsPadding()
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             .padding(bottom = 40.dp)
             .padding(horizontal = spacing.horizontalSpace)
     ) {

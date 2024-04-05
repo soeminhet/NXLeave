@@ -64,7 +64,7 @@ fun EditLeaveBalanceSheet(
 }
 
 @Composable
-private fun EditLeaveBalanceContent(
+internal fun EditLeaveBalanceContent(
     title: String,
     leaveBalanceList: List<LeaveBalanceUiModel>,
     onSubmit: (List<LeaveBalanceUiModel>) -> Unit

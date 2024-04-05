@@ -84,7 +84,7 @@ fun ManageStaffSheet(
 }
 
 @Composable
-private fun ManageStaffContent(
+internal fun ManageStaffContent(
     staffModel: StaffProfileUiModel?,
     roles: List<RoleModel>,
     projects: List<ProjectModel>,

@@ -15,5 +15,12 @@ data class LeaveTypeModel(
             color = 0xFFFF004D,
             enable = true
         )
+
+        val medicalLeave = LeaveTypeModel(
+            id = UUID.randomUUID().toString(),
+            name = "Medical Leave",
+            color = 0xFF80BCBD,
+            enable = true
+        )
     }
 }

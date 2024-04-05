@@ -48,6 +48,7 @@ import com.smh.nxleave.design.component.NXFloatingButton
 import com.smh.nxleave.design.component.ShowLeaveItem
 import com.smh.nxleave.design.sheet.LeaveRequestSheet
 import com.smh.nxleave.design.sheet.MyLeaveBalanceSheet
+import com.smh.nxleave.domain.model.LeaveBalanceModel
 import com.smh.nxleave.domain.model.LeaveTypeModel
 import com.smh.nxleave.screen.model.LeaveRequestModel
 import com.smh.nxleave.screen.model.LeaveRequestUiModel
@@ -266,11 +267,23 @@ sealed interface BalanceUserEvent {
 private fun BalanceScreenPreview() {
     NXLeaveTheme {
         BalanceContent(
-            uiState = BalanceUiState(
-                leaveTypes = listOf(
-                    LeaveTypeModel.annualLeave,
-                )
-            ),
+            uiState = BalanceUiState()
+                .copy(
+                    leaveTypes = listOf(
+                        LeaveTypeModel.annualLeave,
+                        LeaveTypeModel.medicalLeave
+                    ),
+                    totalDays = 20.0,
+                    tookDays = 3.5,
+                    leaveTookPercentages = mapOf(
+                        Color(0xFFFF004D) to 15,
+                        Color(0xFF80BCBD) to 3
+                    ),
+                    leaveRequests = listOf(
+                        LeaveRequestUiModel.examplePending,
+                        LeaveRequestUiModel.exampleApprove
+                    )
+                ),
             userEvent = {}
         )
     }

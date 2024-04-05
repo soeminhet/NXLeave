@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +25,10 @@ import com.smh.nxleave.design.component.NXBackButton
 import com.smh.nxleave.design.component.NXFloatingButton
 import com.smh.nxleave.design.component.NXLoading
 import com.smh.nxleave.design.sheet.ManageLeaveTypeSheet
+import com.smh.nxleave.design.sheet.Option
+import com.smh.nxleave.design.sheet.OptionsContent
+import com.smh.nxleave.design.sheet.OptionsSheet
+import com.smh.nxleave.design.sheet.SheetPreview
 import com.smh.nxleave.domain.model.LeaveTypeModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
 import com.smh.nxleave.viewmodel.LeaveTypeUiEvent
@@ -169,9 +172,27 @@ sealed interface LeaveTypesUserEvent {
 @Composable
 private fun LeaveTypesPreview() {
     NXLeaveTheme {
-        LeaveTypesContent(
-            uiState = LeaveTypesUiState(),
-            userEvent = {}
+        SheetPreview(
+            content = {
+                LeaveTypesContent(
+                    uiState = LeaveTypesUiState()
+                        .copy(
+                            loading = false,
+                            leaveTypes = listOf(
+                                LeaveTypeModel.medicalLeave,
+                                LeaveTypeModel.annualLeave
+                            )
+                        ),
+                    userEvent = {}
+                )
+            },
+            sheet = {
+                OptionsContent(
+                    options = listOf(Option.EDIT, Option.DISABLE),
+                    onClick = {},
+                    onCancel = {}
+                )
+            }
         )
     }
 }

@@ -24,7 +24,11 @@ import com.smh.nxleave.design.component.NXBackButton
 import com.smh.nxleave.design.component.NXFloatingButton
 import com.smh.nxleave.design.component.NXLoading
 import com.smh.nxleave.design.component.ProjectItem
+import com.smh.nxleave.design.sheet.Option
+import com.smh.nxleave.design.sheet.OptionsContent
+import com.smh.nxleave.design.sheet.ProjectManagementContent
 import com.smh.nxleave.design.sheet.ProjectManagementSheet
+import com.smh.nxleave.design.sheet.SheetPreview
 import com.smh.nxleave.domain.model.ProjectModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
 import com.smh.nxleave.viewmodel.ProjectsUiEvent
@@ -165,9 +169,26 @@ sealed interface ProjectsUserEvent {
 @Composable
 private fun ProjectsPreview() {
     NXLeaveTheme {
-        ProjectsContent(
-            uiState = ProjectsUiState(),
-            userEvent = {}
+        SheetPreview(
+            content = {
+                ProjectsContent(
+                    uiState = ProjectsUiState()
+                        .copy(
+                            projects = listOf(
+                                ProjectModel.example,
+                                ProjectModel.example2
+                            )
+                        ),
+                    userEvent = {}
+                )
+            },
+            sheet = {
+                OptionsContent(
+                    options = listOf(Option.EDIT, Option.DISABLE),
+                    onCancel = { /*TODO*/ },
+                    onClick = {}
+                )
+            }
         )
     }
 }

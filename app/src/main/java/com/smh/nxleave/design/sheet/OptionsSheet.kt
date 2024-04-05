@@ -71,7 +71,7 @@ fun OptionsSheet(
 }
 
 @Composable
-private fun OptionsContent(
+internal fun OptionsContent(
     options: List<Option>,
     onCancel: () -> Unit,
     onClick: (Option) -> Unit

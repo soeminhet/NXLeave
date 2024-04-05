@@ -39,7 +39,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.smh.nxleave.design.component.NXBackButton
 import com.smh.nxleave.design.component.NXLoading
+import com.smh.nxleave.design.sheet.EditLeaveBalanceContent
 import com.smh.nxleave.design.sheet.EditLeaveBalanceSheet
+import com.smh.nxleave.design.sheet.SheetPreview
 import com.smh.nxleave.screen.model.LeaveBalanceUiModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
 import com.smh.nxleave.ui.theme.spacing
@@ -186,9 +188,39 @@ sealed interface LeaveBalanceUserEvent {
 @Composable
 private fun LeaveBalancePreview() {
     NXLeaveTheme {
-        LeaveBalanceContent(
-            uiState = LeaveBalanceUiState(),
-            userEvent = {}
+        SheetPreview(
+            content = {
+                LeaveBalanceContent(
+                    uiState = LeaveBalanceUiState()
+                        .copy(
+                            leaveBalanceMap = mapOf(
+                                "Admin" to listOf(
+                                    LeaveBalanceUiModel("1", "", "", "Annual Leave", "10"),
+                                    LeaveBalanceUiModel("1", "", "", "Medical Leave", "10")
+                                ),
+                                "Staff" to listOf(
+                                    LeaveBalanceUiModel("1", "", "", "Annual Leave", "8"),
+                                    LeaveBalanceUiModel("1", "", "", "Medical Leave", "8")
+                                ),
+                                "Manager" to listOf(
+                                    LeaveBalanceUiModel("1", "", "", "Annual Leave", "9"),
+                                    LeaveBalanceUiModel("1", "", "", "Medical Leave", "9")
+                                ),
+                            )
+                        ),
+                    userEvent = {}
+                )
+            },
+            sheet = {
+                EditLeaveBalanceContent(
+                    title = "Edit Admin",
+                    leaveBalanceList = listOf(
+                        LeaveBalanceUiModel("1", "", "", "Annual Leave", "10"),
+                        LeaveBalanceUiModel("2", "", "", "Medical Leave", "10")
+                    ),
+                    onSubmit = {}
+                )
+            }
         )
     }
 }

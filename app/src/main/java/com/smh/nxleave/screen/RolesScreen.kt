@@ -25,7 +25,11 @@ import com.smh.nxleave.design.component.NXAlertDialog
 import com.smh.nxleave.design.component.NXBackButton
 import com.smh.nxleave.design.component.NXFloatingButton
 import com.smh.nxleave.design.component.NXLoading
+import com.smh.nxleave.design.sheet.Option
+import com.smh.nxleave.design.sheet.OptionsContent
 import com.smh.nxleave.design.sheet.RoleManagementSheet
+import com.smh.nxleave.design.sheet.RoleManagementSheetContent
+import com.smh.nxleave.design.sheet.SheetPreview
 import com.smh.nxleave.domain.model.RoleModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
 import com.smh.nxleave.viewmodel.LeaveTypeUiEvent
@@ -167,9 +171,26 @@ sealed interface RolesUserEvent {
 @Composable
 private fun RolesPreview() {
     NXLeaveTheme {
-        RolesContent(
-            uiState = RolesUiState(),
-            userEvent = {}
+        SheetPreview(
+            content = {
+                RolesContent(
+                    uiState = RolesUiState()
+                        .copy(
+                            roles = listOf(
+                                RoleModel.androidDeveloper,
+                                RoleModel.iOSDeveloper
+                            )
+                        ),
+                    userEvent = {}
+                )
+            },
+            sheet = {
+                OptionsContent(
+                    options = listOf(Option.EDIT, Option.DISABLE),
+                    onCancel = {},
+                    onClick = {}
+                )
+            }
         )
     }
 }

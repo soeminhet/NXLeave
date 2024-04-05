@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -102,6 +104,7 @@ private fun ManageLeaveTypeSheetContent(
 
     Column(
         modifier = Modifier
+            .background(MaterialTheme.colorScheme.surface)
             .fillMaxWidth()
             .padding(bottom = 40.dp)
             .padding(horizontal = spacing.horizontalSpace)
@@ -176,12 +179,21 @@ private fun ManageLeaveTypeSheetContent(
 @Composable
 private fun ManageLeaveTypeSheetPreview() {
     NXLeaveTheme {
-        Surface {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(0.1f))
+            )
+
             ManageLeaveTypeSheetContent(
                 title = "Title",
                 btnLabel = "SUBMIT",
                 onSubmit = { _, _ -> },
-                leaveTypeModel = LeaveTypeModel.annualLeave
+                leaveTypeModel = null
             )
         }
     }

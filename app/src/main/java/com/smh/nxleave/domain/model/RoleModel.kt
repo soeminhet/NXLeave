@@ -42,7 +42,14 @@ data class RoleModel(
         val androidDeveloper = RoleModel(
             id = UUID.randomUUID().toString(),
             name = "Android Developer",
-            enable = false,
+            enable = true,
+            accessLevel = AccessLevel.None()
+        )
+
+        val iOSDeveloper = RoleModel(
+            id = UUID.randomUUID().toString(),
+            name = "iOS Developer",
+            enable = true,
             accessLevel = AccessLevel.None()
         )
 

@@ -1,5 +1,6 @@
 package com.smh.nxleave.design.sheet
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -53,7 +54,7 @@ fun ProjectManagementSheet(
 }
 
 @Composable
-private fun ProjectManagementContent(
+internal fun ProjectManagementContent(
     model: ProjectModel?,
     onSubmit: (ProjectModel) -> Unit,
 ) {
@@ -67,6 +68,7 @@ private fun ProjectManagementContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             .padding(bottom = spacing.sheetBottomSpace)
             .padding(horizontal = spacing.horizontalSpace)
             .navigationBarsPadding()

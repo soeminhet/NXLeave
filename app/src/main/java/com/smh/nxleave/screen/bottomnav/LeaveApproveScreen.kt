@@ -5,22 +5,26 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -39,7 +43,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.smh.nxleave.LocalEntryPadding
 import com.smh.nxleave.design.component.LeaveStatus
-import com.smh.nxleave.design.component.NXLoading
 import com.smh.nxleave.design.component.ShowLeaveItem
 import com.smh.nxleave.design.component.modifier.noRippleClick
 import com.smh.nxleave.design.sheet.LeaveInfoSheet
@@ -78,13 +81,18 @@ private fun LeaveApproveContent(
         mStatus.add(0, "All")
         mStatus.toList()
     }
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(1) }
     var leaveInfoSheetData by remember { mutableStateOf<LeaveRequestUiModel?>(null) }
 
     val filteredLeaveRequests by remember(uiState.leaveRequests) {
         derivedStateOf {
             if (selectedTab == 0) uiState.leaveRequests
             else uiState.leaveRequests.filter { it.leaveStatus == LeaveStatus.entries[selectedTab - 1] }
+        }
+    }
+    val showEmpty by remember {
+        derivedStateOf {
+            filteredLeaveRequests.isEmpty()
         }
     }
 
@@ -133,26 +141,48 @@ private fun LeaveApproveContent(
             }
         }
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .padding(it)
-                .fillMaxSize()
-                .animateContentSize(),
-            contentPadding = PaddingValues(spacing.horizontalSpace),
-            verticalArrangement = Arrangement.spacedBy(spacing.space12)
+        Box(modifier = Modifier
+            .padding(it)
+            .fillMaxSize()
         ) {
-            items(filteredLeaveRequests) { model ->
-                ShowLeaveItem(
-                    role = model.role,
-                    title = model.staffName,
-                    dates = model.dateRange,
-                    status = model.leaveStatus,
-                    leaveType = model.leaveType,
-                    modifier = Modifier
-                        .animateItemPlacement()
-                        .clip(CardDefaults.shape)
-                        .clickable { leaveInfoSheetData = model }
-                )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .animateContentSize(),
+                contentPadding = PaddingValues(spacing.horizontalSpace),
+                verticalArrangement = Arrangement.spacedBy(spacing.space12)
+            ) {
+                items(filteredLeaveRequests) { model ->
+                    ShowLeaveItem(
+                        role = model.role,
+                        title = model.staffName,
+                        dates = model.dateRange,
+                        status = model.leaveStatus,
+                        leaveType = model.leaveType,
+                        modifier = Modifier
+                            .animateItemPlacement()
+                            .clip(CardDefaults.shape)
+                            .clickable { leaveInfoSheetData = model }
+                    )
+                }
+            }
+
+            if (showEmpty) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.SentimentVeryDissatisfied,
+                        contentDescription = "Sorry",
+                        modifier = Modifier.size(75.dp)
+                    )
+
+                    Text(
+                        text = "No Data",
+                        modifier = Modifier.padding(top = spacing.space4)
+                    )
+                }
             }
         }
     }
@@ -168,7 +198,14 @@ sealed interface LeaveApproveUserEvent {
 private fun LeaveApprovePreview() {
     NXLeaveTheme {
         LeaveApproveContent(
-            uiState = LeaveApproveUiState(),
+            uiState = LeaveApproveUiState()
+                .copy(
+                    leaveRequests = listOf(
+                        LeaveRequestUiModel.exampleApprove,
+                        LeaveRequestUiModel.examplePending,
+                        LeaveRequestUiModel.exampleRejected
+                    )
+                ),
             userEvent = {}
         )
     }

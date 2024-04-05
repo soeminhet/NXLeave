@@ -32,12 +32,16 @@ import com.smh.nxleave.design.component.NXAlertDialog
 import com.smh.nxleave.design.component.NXBackButton
 import com.smh.nxleave.design.component.NXLoading
 import com.smh.nxleave.design.component.ShowLeaveItem
+import com.smh.nxleave.design.sheet.ReportFilterContent
 import com.smh.nxleave.design.sheet.ReportFilterSheet
+import com.smh.nxleave.design.sheet.SheetPreview
 import com.smh.nxleave.domain.model.ProjectModel
 import com.smh.nxleave.domain.model.RoleModel
 import com.smh.nxleave.domain.model.StaffModel
+import com.smh.nxleave.screen.model.LeaveRequestUiModel
 import com.smh.nxleave.ui.theme.NXLeaveTheme
 import com.smh.nxleave.ui.theme.spacing
+import com.smh.nxleave.utility.getCurrentMonthStartAndEndOffsetDate
 import com.smh.nxleave.viewmodel.ReportUiState
 import com.smh.nxleave.viewmodel.ReportViewModel
 import java.time.OffsetDateTime
@@ -187,7 +191,14 @@ sealed interface ReportUserEvent {
 private fun ReportPreview() {
     NXLeaveTheme {
         ReportContent(
-            uiState = ReportUiState(),
+            uiState = ReportUiState()
+                .copy(
+                    leaveRequests = listOf(
+                        LeaveRequestUiModel.exampleApprove,
+                        LeaveRequestUiModel.examplePending,
+                        LeaveRequestUiModel.exampleRejected
+                    )
+                ),
             userEvent = {}
         )
     }

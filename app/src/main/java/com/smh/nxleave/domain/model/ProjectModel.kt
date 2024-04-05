@@ -14,6 +14,12 @@ data class ProjectModel(
             enable = true
         )
 
+        val example2 = ProjectModel(
+            id = UUID.randomUUID().toString(),
+            name = "AIA",
+            enable = true
+        )
+
         val allProject = ProjectModel(
             id = "",
             name = "All",

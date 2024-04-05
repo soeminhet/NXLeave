@@ -1,5 +1,6 @@
 package com.smh.nxleave.design.sheet
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -56,7 +57,7 @@ fun RoleManagementSheet(
 }
 
 @Composable
-private fun RoleManagementSheetContent(
+internal fun RoleManagementSheetContent(
     model: RoleModel?,
     onSubmit: (RoleModel) -> Unit,
 ) {
@@ -92,8 +93,9 @@ private fun RoleManagementSheetContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             .padding(bottom = 40.dp)
-            .padding(horizontal = spacing.horizontalSpace)
+            .padding(horizontal = spacing.horizontalSpace),
     ) {
         SheetLip()
 

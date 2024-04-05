@@ -1,6 +1,7 @@
 package com.smh.nxleave.design.sheet
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -75,7 +76,7 @@ fun ReportFilterSheet(
 }
 
 @Composable
-private fun ReportFilterContent(
+internal fun ReportFilterContent(
     initSelectedStaff: StaffModel,
     initSelectedRole: RoleModel,
     initSelectedProject: ProjectModel,
@@ -200,6 +201,7 @@ private fun ReportFilterContent(
     Column(
         modifier = Modifier
             .navigationBarsPadding()
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = spacing.horizontalSpace)
             .padding(bottom = spacing.sheetBottomSpace)
             .animateContentSize(),
