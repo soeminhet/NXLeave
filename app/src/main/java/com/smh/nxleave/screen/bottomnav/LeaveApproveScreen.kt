@@ -81,7 +81,7 @@ private fun LeaveApproveContent(
         mStatus.add(0, "All")
         mStatus.toList()
     }
-    var selectedTab by rememberSaveable { mutableIntStateOf(1) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var leaveInfoSheetData by remember { mutableStateOf<LeaveRequestUiModel?>(null) }
 
     val filteredLeaveRequests by remember(uiState.leaveRequests) {
@@ -90,7 +90,7 @@ private fun LeaveApproveContent(
             else uiState.leaveRequests.filter { it.leaveStatus == LeaveStatus.entries[selectedTab - 1] }
         }
     }
-    val showEmpty by remember {
+    val showEmpty by remember(filteredLeaveRequests) {
         derivedStateOf {
             filteredLeaveRequests.isEmpty()
         }
@@ -143,8 +143,7 @@ private fun LeaveApproveContent(
     ) {
         Box(modifier = Modifier
             .padding(it)
-            .fillMaxSize()
-        ) {
+            .fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
