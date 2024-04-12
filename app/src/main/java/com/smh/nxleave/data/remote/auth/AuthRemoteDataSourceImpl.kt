@@ -23,4 +23,10 @@ class AuthRemoteDataSourceImpl @Inject constructor(): AuthRemoteDataSource {
     override fun signOut() {
         auth.signOut()
     }
+
+    override fun resetPassword(email: String, onResult: (Task<Void>) -> Unit, onFailure: (Exception) -> Unit) {
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener(onResult)
+            .addOnFailureListener(onFailure)
+    }
 }

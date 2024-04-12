@@ -61,4 +61,12 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun updateStaffId(value: String) {
         localDataStore.updateStaffId(value)
     }
+
+    override fun resetPassword(email: String, onResult: (Result<Unit>) -> Unit) {
+        authRemoteDataSource.resetPassword(
+            email = email,
+            onResult = { onResult(Result.success(Unit)) },
+            onFailure = { onResult(Result.failure(it)) }
+        )
+    }
 }

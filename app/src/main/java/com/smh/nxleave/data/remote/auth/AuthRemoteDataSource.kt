@@ -7,4 +7,5 @@ interface AuthRemoteDataSource {
     fun signIn(email: String, password: String, onResult: (Task<AuthResult>) -> Unit)
     fun signUp(email: String, password: String, onResult: (Task<AuthResult>) -> Unit)
     fun signOut()
+    fun resetPassword(email: String, onResult: (Task<Void>) -> Unit, onFailure: (Exception) -> Unit)
 }

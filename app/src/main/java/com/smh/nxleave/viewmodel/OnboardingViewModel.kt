@@ -35,12 +35,15 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private fun fetchIsInitialized() {
+        setLoading(true)
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update {
                 it.copy(
                     isInitialized = fireStoreRepository.isInitialized()
                 )
             }
+        }.invokeOnCompletion {
+            setLoading(false)
         }
     }
 

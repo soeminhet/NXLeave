@@ -1,5 +1,6 @@
 package com.smh.nxleave.screen
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,6 +41,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun OnboardingScreen(
     toLogin: () -> Unit,
     toDashboard: () -> Unit,
+    toReset: () -> Unit,
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,6 +63,7 @@ fun OnboardingScreen(
             when(it) {
                 OnboardingUserEvent.ToLogin -> toLogin()
                 OnboardingUserEvent.GetStarted -> viewModel.getStarted()
+                OnboardingUserEvent.ForgetPassword -> toReset()
             }
         }
     )
@@ -94,7 +98,9 @@ private fun OnboardingContent(
             Spacer(modifier = Modifier.weight(1f))
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(spacing.space10)
+                verticalArrangement = Arrangement.spacedBy(spacing.space10),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.animateContentSize()
             ) {
                 Button(
                     onClick = {
@@ -108,6 +114,12 @@ private fun OnboardingContent(
                 ) {
                     Text(text = if (uiState.isInitialized) "LOGIN" else "GET STARTED")
                 }
+
+                if (uiState.isInitialized) {
+                    TextButton(onClick = { userEvent(OnboardingUserEvent.ForgetPassword) }) {
+                        Text(text = "Forget Password")
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(50.dp))
@@ -118,6 +130,7 @@ private fun OnboardingContent(
 sealed interface OnboardingUserEvent {
     data object ToLogin: OnboardingUserEvent
     data object GetStarted: OnboardingUserEvent
+    data object ForgetPassword: OnboardingUserEvent
 }
 
 @Preview(showBackground = true)

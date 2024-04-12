@@ -9,4 +9,5 @@ interface AuthRepository {
     fun signIn(email: String, password: String, onResult: (Result<AuthUserModel>) -> Unit)
     fun singUp(email: String, password: String, onResult: (Result<AuthUserModel>) -> Unit)
     suspend fun updateStaffId(value: String)
+    fun resetPassword(email: String, onResult: (Result<Unit>) -> Unit)
 }
