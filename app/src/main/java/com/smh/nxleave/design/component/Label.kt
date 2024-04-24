@@ -36,7 +36,7 @@ fun Label(
         )
 
         TextButton(
-            onClick = { /*TODO*/ },
+            onClick = { onViewAll?.invoke() },
             enabled = showViewAll
         ) {
             Text(
